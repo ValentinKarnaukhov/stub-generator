@@ -1,0 +1,46 @@
+---
+swagger: "2.0"
+info:
+  description: "Test api for stubs generation"
+  version: "1.0.0"
+  title: "Test Api"
+host: "localhost:8080"
+tags:
+- name: "TestTag"
+schemes:
+- "http"
+paths:
+  /test/v1/object:
+    get:
+      tags:
+      - "TestTag"
+      summary: "Get object by params"
+      operationId: "getObjectByParams"
+      parameters:
+      - name: "param1"
+        in: "query"
+        description: "Param 1"
+        required: false
+        type: "string"
+      - name: "param2"
+        in: "query"
+        description: "Param 2"
+        required: false
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          schema:
+            $ref: "#/definitions/TestObject"
+          description: "Ok"
+        400:
+          description: "Invalid request parameters"
+definitions:
+  TestObject:
+    type: "object"
+    properties:
+      objectParam1:
+        type: "integer"
+        format: "int64"
+      objectParam2:
+        type: "string"

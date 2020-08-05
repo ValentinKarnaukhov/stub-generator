@@ -1,0 +1,62 @@
+package com.github.valentinkarnaukhov.stubgenerator;
+
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.matching.StringValuePattern;
+import com.github.tomakehurst.wiremock.matching.UrlPattern;
+import com.github.valentinkarnaukhov.stubgenerator.model.*;
+
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.jsonResponse;
+import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.like;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+
+public class {{tag}} {
+
+    {{#paths}}
+    public static class {{operationId}} {
+
+        private static final String PATH = "{{path}}";
+
+        private Object response;
+        private UrlPattern urlPattern;
+        private final Map<String, StringValuePattern> queryParams = new LinkedHashMap<>();
+
+        public {{operationId}}() {
+        }
+
+        {{#queryParams}}
+        public {{operationId}} inQuery{{queryParamName}}({{queryParamType}} {{methodQueryParamName}}) {
+            queryParams.put("{{methodQueryParamName}}", equalTo({{methodQueryParamName}}.toString()));
+            return this;
+        }
+        {{/queryParams}}
+
+        {{#responses}}
+        public {{operationId}} code{{code}}(){
+            response = {{#responseType}}new {{responseType}}(){{/responseType}}{{#description}}"{{description}}"{{/description}};
+            return this;
+        }
+
+
+        {{#responseSetters}}
+        public {{operationId}} with{{responseFieldName}}({{responseFieldType}} {{methodResponseFieldName}}) {
+            (({{responseType}}) response).{{setterName}}({{methodResponseFieldName}});
+            return this;
+        }
+        {{/responseSetters}}
+        {{/responses}}
+
+        public void mock() {
+            new WireMockServer().stubFor({{httpMethod}}(urlPattern)
+                    .withQueryParams(queryParams)
+                    .willReturn(like(jsonResponse(response))));
+        }
+
+    }
+    {{/paths}}
+
+}
