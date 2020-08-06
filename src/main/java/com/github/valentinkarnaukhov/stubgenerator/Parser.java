@@ -26,24 +26,35 @@ public class Parser {
 
         OpenAPI openAPI = generator.getOpenAPI();
         Paths paths = openAPI.getPaths();
-        TagTemplate tagTemplate = new TagTemplate();
-        tagTemplate.setTag("TestTag");
-        tagTemplate.setPaths(new ArrayList<>());
 
+        Map<String, List<PathTemplate>> pathTemplates = new LinkedHashMap<>();
         for (String pathItem : openAPI.getPaths().keySet()) {
 
             Map<PathItem.HttpMethod, Operation> operationMap = paths.get(pathItem).readOperationsMap();
-
             for (PathItem.HttpMethod method : operationMap.keySet()) {
                 Operation operation = operationMap.get(method);
 
-                CodegenOperation codegenOperation = generator.getConfig()
-                        .fromOperation(pathItem, method.name(), operation, openAPI.getComponents().getSchemas(), openAPI);
-                tagTemplate.getPaths().add(operationToPath(codegenOperation, operation.getResponses()));
+                CodegenOperation codegenOperation =
+                        generator.getConfig().fromOperation(pathItem, method.name(), operation, openAPI.getComponents().getSchemas(), openAPI);
+                PathTemplate pathTemplate = operationToPath(codegenOperation, operation.getResponses());
+
+                pathTemplates.computeIfPresent(operation.getTags().iterator().next(), (k, v) -> {
+                    v.add(pathTemplate);
+                    return v;
+                });
+
+                pathTemplates.computeIfAbsent(operation.getTags().iterator().next(), k -> {
+                    List<PathTemplate> toAdd = new ArrayList<>();
+                    toAdd.add(pathTemplate);
+                    return toAdd;
+                });
             }
         }
 
-        return Collections.singletonList(tagTemplate);
+        List<TagTemplate> tagTemplates = new ArrayList<>();
+        pathTemplates.forEach((k, v) -> tagTemplates.add(new TagTemplate(k, v)));
+
+        return tagTemplates;
     }
 
     private PathTemplate operationToPath(CodegenOperation oper, ApiResponses responses) {
