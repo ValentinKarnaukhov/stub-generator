@@ -16,7 +16,7 @@ import java.util.*;
 
 public class Parser {
 
-    private WiremockGenerator generator;
+    private final WiremockGenerator generator;
 
     public Parser(WiremockGenerator generator) {
         this.generator = generator;

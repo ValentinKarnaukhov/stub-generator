@@ -4,7 +4,8 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import com.github.tomakehurst.wiremock.matching.UrlPattern;
-import com.github.valentinkarnaukhov.stubgenerator.model.*;
+import com.github.tomakehurst.wiremock.stubbing.StubMapping;
+import {{modelPackage}}.*;
 
 
 import java.util.LinkedHashMap;
@@ -50,6 +51,11 @@ public class {{tag}} {
         {{/responseSetters}}
         {{/responses}}
 
+        private StubMapping buildStub() {
+            return {{httpMethod}}(urlPattern)
+                    .withQueryParams(queryParams)
+                    .willReturn(like(jsonResponse(response))).build();
+        }
         public void mock() {
             new WireMockServer().stubFor({{httpMethod}}(urlPattern)
                     .withQueryParams(queryParams)

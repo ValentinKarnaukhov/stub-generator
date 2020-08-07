@@ -3,7 +3,7 @@ package com.github.valentinkarnaukhov.stubgenerator;
 import com.github.valentinkarnaukhov.stubgenerator.model.TagTemplate;
 import com.github.valentinkarnaukhov.stubgenerator.mustache.MustacheProcessor;
 import io.swagger.codegen.v3.*;
-import io.swagger.v3.core.util.Json;
+import io.swagger.codegen.v3.generators.DefaultCodegenConfig;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.Schema;
 import lombok.Getter;
@@ -16,26 +16,27 @@ import java.util.*;
 @Getter
 public class WiremockGenerator extends AbstractGenerator implements Generator {
 
-    private CodegenConfig config;
+    private DefaultCodegenConfig config;
     private OpenAPI openAPI;
     private Parser parser;
     private Map<String, CodegenModel> allModels;
 
-    public WiremockGenerator(OpenAPI openAPI) {
-        config = new WiremockCodegenConfig();
+    public WiremockGenerator(OpenAPI openAPI,
+                             DefaultCodegenConfig defaultCodegenConfig) {
+        config = defaultCodegenConfig;
         parser = new Parser(this);
         this.openAPI = openAPI;
         this.allModels = new HashMap<>();
         generateModels(this.allModels);
-
     }
 
     @Override
     public List<File> generate() {
         List<TagTemplate> templates = parser.parse();
+        MustacheProcessor mustacheProcessor = new MustacheProcessor(config);
         try {
             for(TagTemplate template : templates){
-                MustacheProcessor.process(template);
+                mustacheProcessor.process(template);
             }
         } catch (IOException e) {
             e.printStackTrace();
