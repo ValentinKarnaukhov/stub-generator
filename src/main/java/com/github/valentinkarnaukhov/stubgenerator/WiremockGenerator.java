@@ -2,11 +2,7 @@ package com.github.valentinkarnaukhov.stubgenerator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.valentinkarnaukhov.stubgenerator.model.TagTemplate;
-import com.github.valentinkarnaukhov.stubgenerator.mustache.MustacheProcessor;
 import io.swagger.codegen.v3.*;
-import io.swagger.codegen.v3.generators.DefaultCodegenConfig;
-import io.swagger.codegen.v3.templates.MustacheTemplateEngine;
-import io.swagger.codegen.v3.templates.TemplateEngine;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.Schema;
 import lombok.Getter;
@@ -19,34 +15,86 @@ import java.util.*;
 @Getter
 public class WiremockGenerator extends AbstractGenerator implements Generator {
 
+    private ObjectMapper objectMapper;
     private CodegenConfig config;
     private OpenAPI openAPI;
     private Parser parser;
     private Map<String, CodegenModel> allModels;
-    private TemplateEngine templateEngine;
+    private String stubPackage = null;
+    private Boolean generateModels = null;
+    private Boolean generateStub = null;
+    private final Map<String, String> generatorPropertyDefaults = new HashMap<>();
+    private final Map<String, String> importPackages = new HashMap<>();
 
     @Override
     public List<File> generate() {
+        configureGeneratorProperties();
+        generateModels(this.allModels);
+
+        if (!generateStub) {
+            return null;
+        }
         List<TagTemplate> templates = parser.parse();
-        ObjectMapper objectMapper = new ObjectMapper();
-        Map<String, Object> map = objectMapper.convertValue(templates.get(0), Map.class);
-
-//        try {
-//            String test = new MustacheTemplateEngine(config).getRendered("TagTemplate.mustache", map);
-//            writeToFile("TestTag.java", test);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
-//        MustacheProcessor mustacheProcessor = new MustacheProcessor(config);
-//        try {
-//            for(TagTemplate template : templates){
-//                mustacheProcessor.process(template);
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        templates.stream()
+                .peek(this::preProcessTemplate)
+                .forEach(this::processTemplate);
         return null;
+    }
+
+    public void setGeneratorPropertyDefault(final String key, final String value) {
+        this.generatorPropertyDefaults.put(key, value);
+    }
+
+    private void preProcessTemplate(TagTemplate tagTemplate) {
+        tagTemplate.setImportPackages(this.importPackages);
+    }
+
+    private void configureGeneratorProperties() {
+        if (generatorPropertyDefaults.containsKey("generateModels")) {
+            this.generateModels = Boolean.valueOf(generatorPropertyDefaults.get("generateModels"));
+        }
+
+        if (generatorPropertyDefaults.containsKey("generateStub")) {
+            this.generateStub = Boolean.valueOf(generatorPropertyDefaults.get("generateStub"));
+        }
+
+        if (generatorPropertyDefaults.containsKey("stubPackage")) {
+            this.stubPackage = generatorPropertyDefaults.get("stubPackage");
+        }
+
+        customOrDefault();
+
+        importPackages.put("stubPackage", stubPackage);
+        importPackages.put("modelPackage", config.modelPackage());
+
+        if(generatorPropertyDefaults.containsKey("delegateObject")){
+            importPackages.put("delegateObject", generatorPropertyDefaults.get("delegateObject"));
+        }
+    }
+
+    private void customOrDefault() {
+        if (generateModels == null) {
+            generateModels = true;
+        }
+
+        if (generateStub == null) {
+            generateStub = true;
+        }
+
+        if (stubPackage == null) {
+            stubPackage = "com.github.valentinkarnaukhov.stubgenerator.stub";
+        }
+    }
+
+    private void processTemplate(TagTemplate tagTemplate) {
+        try {
+            String outputFilename = config.getOutputDir() + File.separator + "src/main/java" + File.separator +
+                    stubPackage.replace('.', '/') + File.separator + tagTemplate.getTag() + ".java";
+            Map<String, Object> templateData = this.objectMapper.convertValue(tagTemplate, Map.class);
+            processTemplateToFile(templateData, "TagTemplate.mustache", outputFilename);
+        } catch (Exception e) {
+            throw new RuntimeException("Can't process data to file");
+        }
     }
 
     @Override
@@ -56,9 +104,7 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
         this.parser = new Parser(this);
         this.allModels = new HashMap<>();
         this.config.processOpts();
-        this.templateEngine = config.getTemplateEngine();
-        generateModels(this.allModels);
-        this.templateEngine = new MustacheTemplateEngine(config);
+        this.objectMapper = new ObjectMapper();
         return this;
     }
 
@@ -112,12 +158,15 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
         allProcessedModels = config.postProcessAllModels(allProcessedModels);
 
         // generate files based on processed models
-        for (String modelName: allProcessedModels.keySet()) {
-            Map<String, Object> models = (Map<String, Object>)allProcessedModels.get(modelName);
+        for (String modelName : allProcessedModels.keySet()) {
+            Map<String, Object> models = (Map<String, Object>) allProcessedModels.get(modelName);
             try {
                 Map<String, Object> modelTemplate = (Map<String, Object>) ((List<Object>) models.get("models")).get(0);
                 allModels.put(modelName, (CodegenModel) modelTemplate.get("model"));
 
+                if (!generateModels) {
+                    continue;
+                }
                 for (String templateName : config.modelTemplateFiles().keySet()) {
                     String suffix = config.modelTemplateFiles().get(templateName);
                     String filename = config.modelFileFolder() + File.separator + config.toModelFilename(modelName) + suffix;
@@ -217,7 +266,7 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
     private File processTemplateToFile(Map<String, Object> templateData, String templateName, String outputFilename) throws IOException {
         String adjustedOutputFilename = outputFilename.replaceAll("//", "/").replace('/', File.separatorChar);
         String templateFile = getFullTemplateFile(config, templateName);
-        String rendered = templateEngine.getRendered(templateFile, templateData);
+        String rendered = config.getTemplateEngine().getRendered(templateFile, templateData);
         writeToFile(adjustedOutputFilename, rendered);
         return new File(adjustedOutputFilename);
     }

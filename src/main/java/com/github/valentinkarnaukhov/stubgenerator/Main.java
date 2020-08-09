@@ -1,17 +1,9 @@
 package com.github.valentinkarnaukhov.stubgenerator;
 
 import io.swagger.codegen.v3.ClientOptInput;
-import io.swagger.codegen.v3.ClientOpts;
-import io.swagger.codegen.v3.CodegenConfig;
-import io.swagger.codegen.v3.DefaultGenerator;
 import io.swagger.codegen.v3.config.CodegenConfigurator;
-import io.swagger.codegen.v3.generators.DefaultCodegenConfig;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
-import com.github.valentinkarnaukhov.stubgenerator.Parser;
-
-import java.io.IOException;
-import java.util.HashMap;
 
 public class Main {
 
@@ -26,20 +18,17 @@ public class Main {
 
         codegenConfigurator.setModelPackage("com.github.valentinkarnaukhov.stubgenerator.model");
         codegenConfigurator.setLang("java");
-        codegenConfigurator.setInputSpec("stub-generator/src/main/resources/swagger_2_0.yaml");
-        codegenConfigurator.
+        codegenConfigurator.setInputSpec("src/main/resources/swagger_2_0.yaml");
+        codegenConfigurator.setOutputDir("target/generated-sources/swagger");
+        codegenConfigurator.setTemplateDir("src/main/resources");
 
         ClientOptInput input = codegenConfigurator.toClientOptInput();
         input.setOpenAPI(openAPI);
 
-        DefaultGenerator defaultGenerator = new DefaultGenerator();
-
-        defaultGenerator.opts(input);
-        defaultGenerator.generate();
-
-//        WiremockGenerator wiremockGenerator = new WiremockGenerator();
-//        wiremockGenerator.opts(input);
-//        wiremockGenerator.generate();
+        WiremockGenerator wiremockGenerator = new WiremockGenerator();
+        wiremockGenerator.opts(input);
+//        wiremockGenerator.setGeneratorPropertyDefault("delegateObject", "com.github.valentinkarnaukhov.stubgenerator.TestMock");
+        wiremockGenerator.generate();
     }
 
 

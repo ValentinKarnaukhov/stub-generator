@@ -10,12 +10,14 @@ tags:
 schemes:
 - "http"
 paths:
-  /test/v1/object:
+  /get/v1/object:
     get:
       tags:
-      - "TestTag"
+      - "TestTagGet"
       summary: "Get object by params"
       operationId: "getObjectByParams"
+      produces:
+        - "application/json"
       parameters:
       - name: "param1"
         in: "query"
@@ -35,6 +37,30 @@ paths:
           description: "Ok"
         400:
           description: "Invalid request parameters"
+        403:
+          description: "Forbidden"
+  /put/v1/object:
+    put:
+      tags:
+        - "TestTagPut"
+      summary: "Put object"
+      operationId: "putObject"
+      parameters:
+        - in: "body"
+          name: "body1"
+          required: false
+          schema:
+            type: "object"
+            properties:
+              bodyParam1:
+                type: "string"
+              bodyParam2:
+                type: "integer"
+      responses:
+        200:
+          schema:
+            $ref: "#/definitions/TestObject"
+          description: "Created"
 definitions:
   TestObject:
     type: "object"
@@ -44,3 +70,5 @@ definitions:
         format: "int64"
       objectParam2:
         type: "string"
+      objectParam3:
+        $ref: "#/definitions/TestObject"

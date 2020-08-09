@@ -1,14 +1,11 @@
 package com.github.valentinkarnaukhov.stubgenerator;
 
-import com.github.valentinkarnaukhov.stubgenerator.model.QueryParam;
-import com.github.valentinkarnaukhov.stubgenerator.model.ResponseTemplate;
+import com.github.valentinkarnaukhov.stubgenerator.model.*;
 import io.swagger.codegen.v3.*;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Paths;
-import com.github.valentinkarnaukhov.stubgenerator.model.PathTemplate;
-import com.github.valentinkarnaukhov.stubgenerator.model.TagTemplate;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import org.apache.commons.lang3.StringUtils;
 
@@ -52,7 +49,7 @@ public class Parser {
         }
 
         List<TagTemplate> tagTemplates = new ArrayList<>();
-        pathTemplates.forEach((k, v) -> tagTemplates.add(new TagTemplate(k, v)));
+        pathTemplates.forEach((k, v) -> tagTemplates.add(new TagTemplate(k + "Mock", v)));
 
         return tagTemplates;
     }
@@ -64,43 +61,52 @@ public class Parser {
         pathTemplate.setHttpMethod(oper.getHttpMethod().toLowerCase());
         pathTemplate.setResponses(new ArrayList<>());
 
-        List<QueryParam> queryParams = new ArrayList<>();
-        for (CodegenParameter parameter : oper.getQueryParams()) {
-            QueryParam queryParam = QueryParam.builder()
-                    .methodQueryParamName(parameter.getParamName())
-                    .queryParamName(StringUtils.capitalize(parameter.getParamName()))
-                    .queryParamType(parameter.getDataType())
-                    .build();
-            queryParams.add(queryParam);
-        }
+        List<FieldTemplate> queryParams = processQueryParameters(oper.getQueryParams());
         pathTemplate.setQueryParams(queryParams);
 
         for (CodegenResponse response : oper.getResponses()) {
-            ResponseTemplate responseTemplate = new ResponseTemplate();
-            responseTemplate.setCode(response.getCode());
-            responseTemplate.setResponseType(response.getDataType());
-            responseTemplate.setResponseSetters(new ArrayList<>());
-
-            CodegenModel responseModel = generator.getAllModels().get(response.getBaseType());
-            if (responseModel != null) {
-                for (CodegenProperty property : responseModel.getAllVars()) {
-                    ResponseTemplate.ResponseField responseField =
-                            ResponseTemplate.ResponseField.builder()
-                                    .setterName(property.getSetter())
-                                    .responseFieldName(StringUtils.capitalize(property.getName()))
-                                    .responseFieldType(property.getDatatype())
-                                    .methodResponseFieldName(property.getName())
-                                    .build();
-                    responseTemplate.getResponseSetters().add(responseField);
-                }
-            } else {
-                responseTemplate.setDescription(responses.get(response.getCode()).getDescription());
-            }
-
+            ResponseTemplate responseTemplate = processResponse(response, responses);
             pathTemplate.getResponses().add(responseTemplate);
         }
 
         return pathTemplate;
+    }
+
+    private List<FieldTemplate> processQueryParameters(List<CodegenParameter> parameters) {
+        List<FieldTemplate> queryParams = new ArrayList<>();
+        for (CodegenParameter parameter : parameters) {
+            FieldTemplate queryParam = FieldTemplate.builder()
+                    .methodFieldName(parameter.getParamName())
+                    .fieldType(parameter.getDataType())
+                    .build();
+            queryParams.add(queryParam);
+        }
+        return queryParams;
+    }
+
+
+    private ResponseTemplate processResponse(CodegenResponse response, ApiResponses responses) {
+        ResponseTemplate responseTemplate = new ResponseTemplate();
+        responseTemplate.setCode(response.getCode());
+        responseTemplate.setResponseType(response.getDataType());
+        responseTemplate.setResponseField(new ArrayList<>());
+
+        CodegenModel responseModel = generator.getAllModels().get(response.getBaseType());
+        if (responseModel != null) {
+            for (CodegenProperty property : responseModel.getAllVars()) {
+                FieldTemplate responseField =
+                        FieldTemplate.builder()
+                                .setterName(property.getSetter())
+                                .fieldType(property.getDatatypeWithEnum())
+                                .methodFieldName(property.getName())
+                                .build();
+                responseTemplate.getResponseField().add(responseField);
+            }
+        } else {
+            responseTemplate.setDescription(responses.get(response.getCode()).getDescription());
+        }
+
+        return responseTemplate;
     }
 
 }

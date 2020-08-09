@@ -1,15 +1,14 @@
-package com.github.valentinkarnaukhov.stubgenerator;
+package {{importPackages.stubPackage}};
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import com.github.tomakehurst.wiremock.matching.UrlPattern;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
-import {{modelPackage}}.*;
+import com.github.tomakehurst.wiremock.stubbing.StubImport;
+import {{importPackages.modelPackage}}.*;
 
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.jsonResponse;
 import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.like;
@@ -22,47 +21,52 @@ public class {{tag}} {
 
         private static final String PATH = "{{path}}";
 
-        private Object response;
         private UrlPattern urlPattern;
         private final Map<String, StringValuePattern> queryParams = new LinkedHashMap<>();
 
-        public {{operationId}}() {
-        }
-
         {{#queryParams}}
-        public {{operationId}} inQuery{{queryParamName}}({{queryParamType}} {{methodQueryParamName}}) {
-            queryParams.put("{{methodQueryParamName}}", equalTo({{methodQueryParamName}}.toString()));
+        public {{operationId}} inQuery{{fieldName}}({{{fieldType}}} {{methodFieldName}}) {
+            queryParams.put("{{methodFieldName}}", equalTo({{methodFieldName}}.toString()));
             return this;
         }
         {{/queryParams}}
 
         {{#responses}}
-        public {{operationId}} code{{code}}(){
-            response = {{#responseType}}new {{responseType}}(){{/responseType}}{{#description}}"{{description}}"{{/description}};
-            return this;
+        public Code{{code}}Builder code{{code}}(){
+            return new Code{{code}}Builder();
         }
 
+        public class Code{{code}}Builder{
 
-        {{#responseSetters}}
-        public {{operationId}} with{{responseFieldName}}({{responseFieldType}} {{methodResponseFieldName}}) {
-            (({{responseType}}) response).{{setterName}}({{methodResponseFieldName}});
-            return this;
+            private {{#responseType}}{{responseType}}{{/responseType}}{{#description}}Object{{/description}} response;
+
+            public Code{{code}}Builder(){
+                this.response = {{#responseType}}new {{responseType}}(){{/responseType}}{{#description}}"{{description}}"{{/description}};
+            }
+
+            {{#responseField}}
+            public Code{{code}}Builder with{{fieldName}}({{{fieldType}}} {{methodFieldName}}) {
+                response.{{setterName}}({{methodFieldName}});
+                return this;
+            }
+            {{/responseField}}
+            public StubMapping buildStub() {
+                return {{httpMethod}}(urlPattern)
+                        .withQueryParams(queryParams)
+                        .willReturn(like(jsonResponse(response))).build();
+            }
+
+            public void mock() {
+                {{#importPackages.delegateObject}}
+                {{importPackages.delegateObject}}.mock(buildStub());
+                {{/importPackages.delegateObject}}
+                {{^importPackages.delegateObject}}
+                WireMock.importStubs(StubImport.stubImport().stub(buildStub()).build());
+                {{/importPackages.delegateObject}}
+            }
         }
-        {{/responseSetters}}
         {{/responses}}
-
-        private StubMapping buildStub() {
-            return {{httpMethod}}(urlPattern)
-                    .withQueryParams(queryParams)
-                    .willReturn(like(jsonResponse(response))).build();
-        }
-        public void mock() {
-            new WireMockServer().stubFor({{httpMethod}}(urlPattern)
-                    .withQueryParams(queryParams)
-                    .willReturn(like(jsonResponse(response))));
-        }
 
     }
     {{/paths}}
-
 }
