@@ -14,6 +14,7 @@ public class FieldTemplate {
     private String fieldType;
     private String methodFieldName;
     private String setterName;
+    private String wayToObject;
 
     public String getFieldName() {
         return StringUtils.capitalize(methodFieldName);

@@ -6,30 +6,30 @@ info:
   title: "Test Api"
 host: "localhost:8080"
 tags:
-- name: "TestTag"
+  - name: "TestTag"
 schemes:
-- "http"
+  - "http"
 paths:
   /get/v1/object:
     get:
       tags:
-      - "TestTagGet"
+        - "TestTagGet"
       summary: "Get object by params"
       operationId: "getObjectByParams"
       produces:
         - "application/json"
       parameters:
-      - name: "param1"
-        in: "query"
-        description: "Param 1"
-        required: false
-        type: "string"
-      - name: "param2"
-        in: "query"
-        description: "Param 2"
-        required: false
-        type: "integer"
-        format: "int64"
+        - name: "param1"
+          in: "query"
+          description: "Param 1"
+          required: false
+          type: "string"
+        - name: "param2"
+          in: "query"
+          description: "Param 2"
+          required: false
+          type: "integer"
+          format: "int64"
       responses:
         200:
           schema:
@@ -69,6 +69,13 @@ definitions:
         type: "integer"
         format: "int64"
       objectParam2:
-        type: "string"
+        $ref: "#/definitions/ChildTestObject"
       objectParam3:
         $ref: "#/definitions/TestObject"
+  ChildTestObject:
+    type: "object"
+    properties:
+      childObjectParam1:
+        type: "string"
+      childObjectParam2:
+        type: "integer"

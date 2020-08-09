@@ -2,6 +2,7 @@ package com.github.valentinkarnaukhov.stubgenerator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.valentinkarnaukhov.stubgenerator.model.TagTemplate;
+import com.github.valentinkarnaukhov.stubgenerator.util.ModelResolver;
 import io.swagger.codegen.v3.*;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.Schema;
@@ -30,6 +31,9 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
     public List<File> generate() {
         configureGeneratorProperties();
         generateModels(this.allModels);
+
+        ModelResolver modelResolver = new ModelResolver(this.allModels, 3);
+        ModelResolver.Node node = modelResolver.resolveFlatten(this.allModels.get("TestObject"), 0);
 
         if (!generateStub) {
             return null;
@@ -67,7 +71,7 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
         importPackages.put("stubPackage", stubPackage);
         importPackages.put("modelPackage", config.modelPackage());
 
-        if(generatorPropertyDefaults.containsKey("delegateObject")){
+        if (generatorPropertyDefaults.containsKey("delegateObject")) {
             importPackages.put("delegateObject", generatorPropertyDefaults.get("delegateObject"));
         }
     }

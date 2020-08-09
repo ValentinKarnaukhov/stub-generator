@@ -22,6 +22,7 @@ public class Parser {
     public List<TagTemplate> parse() {
 
         OpenAPI openAPI = generator.getOpenAPI();
+
         Paths paths = openAPI.getPaths();
 
         Map<String, List<PathTemplate>> pathTemplates = new LinkedHashMap<>();

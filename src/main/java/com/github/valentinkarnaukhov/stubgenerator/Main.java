@@ -4,6 +4,7 @@ import io.swagger.codegen.v3.ClientOptInput;
 import io.swagger.codegen.v3.config.CodegenConfigurator;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
+import io.swagger.v3.parser.util.InlineModelResolver;
 
 public class Main {
 
@@ -13,6 +14,9 @@ public class Main {
     public static void main(String[] args) {
         OpenAPI openAPI = new OpenAPIV3Parser().read(inputSpec);
         System.out.println("###############");
+
+        InlineModelResolver resolver = new InlineModelResolver(true, true);
+        resolver.flatten(openAPI);
 
         CodegenConfigurator codegenConfigurator = new CodegenConfigurator();
 
