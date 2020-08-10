@@ -12,5 +12,5 @@ public class ResponseTemplate {
     private String responseType;
     private String code;
     private String description;
-    private List<FieldTemplate> responseField;
+    private List<FieldTemplate> responseFields;
 }

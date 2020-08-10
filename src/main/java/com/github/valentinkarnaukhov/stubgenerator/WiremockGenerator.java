@@ -1,6 +1,7 @@
 package com.github.valentinkarnaukhov.stubgenerator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.valentinkarnaukhov.stubgenerator.model.FieldTemplate;
 import com.github.valentinkarnaukhov.stubgenerator.model.TagTemplate;
 import com.github.valentinkarnaukhov.stubgenerator.util.ModelResolver;
 import io.swagger.codegen.v3.*;
@@ -24,6 +25,8 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
     private String stubPackage = null;
     private Boolean generateModels = null;
     private Boolean generateStub = null;
+    private Boolean explode = null;
+    private Integer maxDepth = null;
     private final Map<String, String> generatorPropertyDefaults = new HashMap<>();
     private final Map<String, String> importPackages = new HashMap<>();
 
@@ -32,13 +35,15 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
         configureGeneratorProperties();
         generateModels(this.allModels);
 
-        ModelResolver modelResolver = new ModelResolver(this.allModels, 3);
-        ModelResolver.Node node = modelResolver.resolveFlatten(this.allModels.get("TestObject"), 0);
-
         if (!generateStub) {
             return null;
         }
-        List<TagTemplate> templates = parser.parse();
+
+        if (!explode) {
+            maxDepth = 0;
+        }
+
+        List<TagTemplate> templates = this.parser.parse();
         templates.stream()
                 .peek(this::preProcessTemplate)
                 .forEach(this::processTemplate);
@@ -66,6 +71,14 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
             this.stubPackage = generatorPropertyDefaults.get("stubPackage");
         }
 
+        if (generatorPropertyDefaults.containsKey("maxDepth")) {
+            this.maxDepth = Integer.valueOf(generatorPropertyDefaults.get("maxDepth"));
+        }
+
+        if (generatorPropertyDefaults.containsKey("explode")) {
+            this.explode = Boolean.valueOf(generatorPropertyDefaults.get("explode"));
+        }
+
         customOrDefault();
 
         importPackages.put("stubPackage", stubPackage);
@@ -87,6 +100,14 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
 
         if (stubPackage == null) {
             stubPackage = "com.github.valentinkarnaukhov.stubgenerator.stub";
+        }
+
+        if (maxDepth == null) {
+            maxDepth = 3;
+        }
+
+        if (explode == null) {
+            explode = false;
         }
     }
 

@@ -44,12 +44,12 @@ public class {{tag}} {
                 this.response = {{#responseType}}new {{responseType}}(){{/responseType}}{{#description}}"{{description}}"{{/description}};
             }
 
-            {{#responseField}}
-            public Code{{code}}Builder with{{fieldName}}({{{fieldType}}} {{methodFieldName}}) {
-                response.{{setterName}}({{methodFieldName}});
+            {{#responseFields}}
+            public Code{{code}}Builder with{{compositeFieldName}}({{{fieldType}}} {{methodFieldName}}) {
+                response{{wayToObject}}.{{setterName}}({{methodFieldName}});
                 return this;
             }
-            {{/responseField}}
+            {{/responseFields}}
             public StubMapping buildStub() {
                 return {{httpMethod}}(urlPattern)
                         .withQueryParams(queryParams)

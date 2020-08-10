@@ -30,11 +30,12 @@ public class Main {
         input.setOpenAPI(openAPI);
 
         WiremockGenerator wiremockGenerator = new WiremockGenerator();
+        wiremockGenerator.setGeneratorPropertyDefault("explode", "true");
+
         wiremockGenerator.opts(input);
 //        wiremockGenerator.setGeneratorPropertyDefault("delegateObject", "com.github.valentinkarnaukhov.stubgenerator.TestMock");
         wiremockGenerator.generate();
     }
-
 
 
 }

@@ -1,6 +1,7 @@
 package com.github.valentinkarnaukhov.stubgenerator;
 
 import com.github.valentinkarnaukhov.stubgenerator.model.*;
+import com.github.valentinkarnaukhov.stubgenerator.util.ModelResolver;
 import io.swagger.codegen.v3.*;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
@@ -14,12 +15,14 @@ import java.util.*;
 public class Parser {
 
     private final WiremockGenerator generator;
+    private ModelResolver modelResolver;
 
     public Parser(WiremockGenerator generator) {
         this.generator = generator;
     }
 
     public List<TagTemplate> parse() {
+        this.modelResolver = new ModelResolver(this.generator.getAllModels());
 
         OpenAPI openAPI = generator.getOpenAPI();
 
@@ -74,15 +77,7 @@ public class Parser {
     }
 
     private List<FieldTemplate> processQueryParameters(List<CodegenParameter> parameters) {
-        List<FieldTemplate> queryParams = new ArrayList<>();
-        for (CodegenParameter parameter : parameters) {
-            FieldTemplate queryParam = FieldTemplate.builder()
-                    .methodFieldName(parameter.getParamName())
-                    .fieldType(parameter.getDataType())
-                    .build();
-            queryParams.add(queryParam);
-        }
-        return queryParams;
+        return modelResolver.resolveParameter(parameters, generator.getMaxDepth());
     }
 
 
@@ -90,19 +85,12 @@ public class Parser {
         ResponseTemplate responseTemplate = new ResponseTemplate();
         responseTemplate.setCode(response.getCode());
         responseTemplate.setResponseType(response.getDataType());
-        responseTemplate.setResponseField(new ArrayList<>());
+        responseTemplate.setResponseFields(new ArrayList<>());
 
         CodegenModel responseModel = generator.getAllModels().get(response.getBaseType());
         if (responseModel != null) {
-            for (CodegenProperty property : responseModel.getAllVars()) {
-                FieldTemplate responseField =
-                        FieldTemplate.builder()
-                                .setterName(property.getSetter())
-                                .fieldType(property.getDatatypeWithEnum())
-                                .methodFieldName(property.getName())
-                                .build();
-                responseTemplate.getResponseField().add(responseField);
-            }
+            List<FieldTemplate> responseFields = modelResolver.resolveFlatten(responseModel, generator.getMaxDepth());
+            responseTemplate.setResponseFields(responseFields);
         } else {
             responseTemplate.setDescription(responses.get(response.getCode()).getDescription());
         }

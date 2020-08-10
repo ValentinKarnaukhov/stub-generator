@@ -50,12 +50,33 @@ paths:
           name: "body1"
           required: false
           schema:
-            type: "object"
+            type: "string"
             properties:
               bodyParam1:
                 type: "string"
               bodyParam2:
                 type: "integer"
+        - name: "param1"
+          in: "query"
+          description: "Param 1"
+          required: false
+          type: "string"
+      responses:
+        200:
+          schema:
+            $ref: "#/definitions/TestObject"
+          description: "Created"
+    post:
+      tags:
+        - "TestTagPost"
+      summary: "Post object"
+      operationId: "postObject"
+      parameters:
+        - in: "body"
+          name: "body1"
+          required: false
+          schema:
+            $ref: "#/definitions/ChildTestObject"
       responses:
         200:
           schema:
@@ -66,16 +87,17 @@ definitions:
     type: "object"
     properties:
       objectParam1:
-        type: "integer"
-        format: "int64"
-      objectParam2:
         $ref: "#/definitions/ChildTestObject"
-      objectParam3:
-        $ref: "#/definitions/TestObject"
+      objectParam2:
+        type: "string"
+
   ChildTestObject:
     type: "object"
     properties:
       childObjectParam1:
         type: "string"
-      childObjectParam2:
-        type: "integer"
+  Body:
+    type: "object"
+    properties:
+      bodyObjectParam1:
+        type: "string"
