@@ -2,8 +2,7 @@ package {{importPackages.stubPackage}};
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.matching.StringValuePattern;
-import com.github.tomakehurst.wiremock.matching.UrlPattern;
+import com.github.tomakehurst.wiremock.matching.*;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.github.tomakehurst.wiremock.stubbing.StubImport;
 import {{importPackages.modelPackage}}.*;
@@ -22,6 +21,7 @@ public class {{tag}} {
         private static final String PATH = "{{path}}";
 
         private UrlPattern urlPattern;
+        private List<ContentPattern> bodyPatterns = new ArrayList<>();
         private final Map<String, StringValuePattern> queryParams = new LinkedHashMap<>();
 
         {{#queryParams}}
@@ -30,6 +30,13 @@ public class {{tag}} {
             return this;
         }
         {{/queryParams}}
+        {{#bodyParams}}
+        public {{operationId}} inBody{{compositeFieldName}}({{{fieldType}}} {{methodFieldName}}) {
+            MatchesJsonPathPattern pattern = new MatchesJsonPathPattern("{{wayToObject}}", equalTo({{methodFieldName}}.toString()));
+            bodyPatterns.add(pattern);
+            return this;
+        }
+        {{/bodyParams}}
 
         {{#responses}}
         public Code{{code}}Builder code{{code}}(){

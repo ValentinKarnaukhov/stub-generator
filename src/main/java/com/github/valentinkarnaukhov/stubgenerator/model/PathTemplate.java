@@ -14,4 +14,5 @@ public class PathTemplate {
     private String httpMethod;
     private List<ResponseTemplate> responses;
     private List<FieldTemplate> queryParams;
+    private List<FieldTemplate> bodyParams;
 }

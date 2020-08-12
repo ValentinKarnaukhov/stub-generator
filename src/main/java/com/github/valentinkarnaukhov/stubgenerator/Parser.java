@@ -1,7 +1,8 @@
 package com.github.valentinkarnaukhov.stubgenerator;
 
 import com.github.valentinkarnaukhov.stubgenerator.model.*;
-import com.github.valentinkarnaukhov.stubgenerator.util.ModelResolver;
+import com.github.valentinkarnaukhov.stubgenerator.resolver.ModelResolver;
+import com.github.valentinkarnaukhov.stubgenerator.resolver.ResolverConfFactory;
 import io.swagger.codegen.v3.*;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
@@ -68,6 +69,9 @@ public class Parser {
         List<FieldTemplate> queryParams = processQueryParameters(oper.getQueryParams());
         pathTemplate.setQueryParams(queryParams);
 
+        List<FieldTemplate> bodyParams = processBodyParameters(oper.getBodyParams());
+        pathTemplate.setBodyParams(bodyParams);
+
         for (CodegenResponse response : oper.getResponses()) {
             ResponseTemplate responseTemplate = processResponse(response, responses);
             pathTemplate.getResponses().add(responseTemplate);
@@ -77,7 +81,11 @@ public class Parser {
     }
 
     private List<FieldTemplate> processQueryParameters(List<CodegenParameter> parameters) {
-        return modelResolver.resolveParameter(parameters, generator.getMaxDepth());
+        return modelResolver.resolveParameter(parameters, generator.getMaxDepth(), ResolverConfFactory.getForQuery());
+    }
+
+    private List<FieldTemplate> processBodyParameters(List<CodegenParameter> parameter) {
+        return modelResolver.resolveParameter(parameter, generator.getMaxDepth(), ResolverConfFactory.getForBody());
     }
 
 
@@ -89,7 +97,7 @@ public class Parser {
 
         CodegenModel responseModel = generator.getAllModels().get(response.getBaseType());
         if (responseModel != null) {
-            List<FieldTemplate> responseFields = modelResolver.resolveFlatten(responseModel, generator.getMaxDepth());
+            List<FieldTemplate> responseFields = modelResolver.resolveFlatten(responseModel, generator.getMaxDepth(), ResolverConfFactory.getForResponse());
             responseTemplate.setResponseFields(responseFields);
         } else {
             responseTemplate.setDescription(responses.get(response.getCode()).getDescription());

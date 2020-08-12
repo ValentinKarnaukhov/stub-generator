@@ -10,62 +10,62 @@ tags:
 schemes:
   - "http"
 paths:
-  /get/v1/object:
-    get:
-      tags:
-        - "TestTagGet"
-      summary: "Get object by params"
-      operationId: "getObjectByParams"
-      produces:
-        - "application/json"
-      parameters:
-        - name: "param1"
-          in: "query"
-          description: "Param 1"
-          required: false
-          type: "string"
-        - name: "param2"
-          in: "query"
-          description: "Param 2"
-          required: false
-          type: "integer"
-          format: "int64"
-      responses:
-        200:
-          schema:
-            $ref: "#/definitions/TestObject"
-          description: "Ok"
-        400:
-          description: "Invalid request parameters"
-        403:
-          description: "Forbidden"
+#  /get/v1/object:
+#    get:
+#      tags:
+#        - "TestTagGet"
+#      summary: "Get object by params"
+#      operationId: "getObjectByParams"
+#      produces:
+#        - "application/json"
+#      parameters:
+#        - name: "param1"
+#          in: "query"
+#          description: "Param 1"
+#          required: false
+#          type: "string"
+#        - name: "param2"
+#          in: "query"
+#          description: "Param 2"
+#          required: false
+#          type: "integer"
+#          format: "int64"
+#      responses:
+#        200:
+#          schema:
+#            $ref: "#/definitions/Level1"
+#          description: "Ok"
+#        400:
+#          description: "Invalid request parameters"
+#        403:
+#          description: "Forbidden"
   /put/v1/object:
-    put:
-      tags:
-        - "TestTagPut"
-      summary: "Put object"
-      operationId: "putObject"
-      parameters:
-        - in: "body"
-          name: "body1"
-          required: false
-          schema:
-            type: "string"
-            properties:
-              bodyParam1:
-                type: "string"
-              bodyParam2:
-                type: "integer"
-        - name: "param1"
-          in: "query"
-          description: "Param 1"
-          required: false
-          type: "string"
-      responses:
-        200:
-          schema:
-            $ref: "#/definitions/TestObject"
-          description: "Created"
+#    put:
+#      tags:
+#        - "TestTagPut"
+#      summary: "Put object"
+#      operationId: "putObject"
+#      parameters:
+#        - in: "body"
+#          name: "body1"
+#          required: false
+#          schema:
+#            type: "object"
+#            properties:
+#              bodyParam1:
+#                type: "string"
+#              bodyParam2:
+#                type: "integer"
+#        - name: "param1"
+#          in: "query"
+#          description: "Param 1"
+#          required: false
+#          type: "string"
+#      responses:
+#        200:
+#          schema:
+#            $ref: "#/definitions/TestObject"
+#          description: "Created"
     post:
       tags:
         - "TestTagPost"
@@ -83,6 +83,34 @@ paths:
             $ref: "#/definitions/TestObject"
           description: "Created"
 definitions:
+  Level1:
+    type: "object"
+    properties:
+      level1Param1:
+        type: "string"
+      level1Param2:
+        $ref: "#/definitions/Level2"
+  Level2:
+    type: "object"
+    properties:
+      level2Param1:
+        type: "string"
+      level2Param2:
+        $ref: "#/definitions/Level3"
+  Level3:
+    type: "object"
+    properties:
+      level3Param1:
+        type: "string"
+      level3Param2:
+        $ref: "#/definitions/Level4"
+  Level4:
+    type: "object"
+    properties:
+      level4Param1:
+        type: "string"
+      level4Param2:
+        $ref: "#/definitions/TestObject"
   TestObject:
     type: "object"
     properties:
@@ -90,14 +118,10 @@ definitions:
         $ref: "#/definitions/ChildTestObject"
       objectParam2:
         type: "string"
-
   ChildTestObject:
     type: "object"
     properties:
       childObjectParam1:
         type: "string"
-  Body:
-    type: "object"
-    properties:
-      bodyObjectParam1:
-        type: "string"
+      childObjectParam2:
+        $ref: "#/definitions/TestObject"

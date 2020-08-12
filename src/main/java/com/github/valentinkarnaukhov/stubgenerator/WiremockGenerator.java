@@ -1,9 +1,7 @@
 package com.github.valentinkarnaukhov.stubgenerator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.valentinkarnaukhov.stubgenerator.model.FieldTemplate;
 import com.github.valentinkarnaukhov.stubgenerator.model.TagTemplate;
-import com.github.valentinkarnaukhov.stubgenerator.util.ModelResolver;
 import io.swagger.codegen.v3.*;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.Schema;
@@ -187,7 +185,7 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
             Map<String, Object> models = (Map<String, Object>) allProcessedModels.get(modelName);
             try {
                 Map<String, Object> modelTemplate = (Map<String, Object>) ((List<Object>) models.get("models")).get(0);
-                allModels.put(modelName, (CodegenModel) modelTemplate.get("model"));
+                allModels.put(config.toModelName(modelName), (CodegenModel) modelTemplate.get("model"));
 
                 if (!generateModels) {
                     continue;

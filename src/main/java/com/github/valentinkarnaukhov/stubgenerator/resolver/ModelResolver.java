@@ -1,4 +1,4 @@
-package com.github.valentinkarnaukhov.stubgenerator.util;
+package com.github.valentinkarnaukhov.stubgenerator.resolver;
 
 import com.github.valentinkarnaukhov.stubgenerator.model.FieldTemplate;
 import io.swagger.codegen.v3.CodegenModel;
@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static io.swagger.codegen.v3.generators.DefaultCodegenConfig.camelize;
+
 public class ModelResolver {
 
     private final Map<String, CodegenModel> allModels;
@@ -23,35 +25,36 @@ public class ModelResolver {
         this.allModels = allModels;
     }
 
-    public List<FieldTemplate> resolveFlatten(CodegenModel codegenModel, int maxDepth) {
+    public List<FieldTemplate> resolveFlatten(CodegenModel codegenModel, int maxDepth, ResolverConf conf) {
         Node node = getNode(codegenModel, null, null, 0, maxDepth);
-        return toFields(node);
+        return toFields(node, conf);
     }
 
-    public List<FieldTemplate> resolveParameter(List<CodegenParameter> parameters, int maxDepth) {
+    public List<FieldTemplate> resolveParameter(List<CodegenParameter> parameters, int maxDepth, ResolverConf conf) {
         List<FieldTemplate> fields = new ArrayList<>();
         for (CodegenParameter parameter : parameters) {
             if (parameter.getIsPrimitiveType()) {
                 FieldTemplate param = FieldTemplate.builder()
+                        .fieldName(camelize(parameter.getParamName()))
                         .methodFieldName(parameter.getParamName())
                         .fieldType(parameter.getDataType())
                         .build();
                 fields.add(param);
             } else {
                 CodegenModel model = this.allModels.get(parameter.baseType);
-                fields.addAll(resolveFlatten(model, maxDepth));
+                fields.addAll(resolveFlatten(model, maxDepth, conf));
             }
         }
         return fields;
     }
 
-    private List<FieldTemplate> toFields(Node node) {
+    private List<FieldTemplate> toFields(Node node, ResolverConf conf) {
         this.fieldTemplates = new ArrayList<>();
-        nodeToField(node);
+        nodeToField(node, conf);
         return fieldTemplates;
     }
 
-    private void nodeToField(Node node) {
+    private void nodeToField(Node node, ResolverConf conf) {
         for (CodegenProperty parameter : node.getParameters()) {
             FieldTemplate fieldTemplate = FieldTemplate.builder()
                     .fieldName(parameter.getNameInCamelCase())
@@ -60,16 +63,22 @@ public class ModelResolver {
                     .setterName(parameter.getSetter())
                     .wayToObject(node.getWayToObject().stream()
                             .map(CodegenProperty::getGetter)
-                            .collect(Collectors.joining("().", ".", "()")))
+                            .collect(Collectors.joining(
+                                    conf.getWayToObjDelimiter(),
+                                    conf.getWayToObjPrefix(),
+                                    conf.getWayToObjSuffix())))
                     .build();
             Stream<String> way = Stream.concat(node.getWayToObject().stream().map(CodegenProperty::getNameInCamelCase),
                     Stream.of(parameter.getNameInCamelCase()));
-            fieldTemplate.setCompositeFieldName(way.collect(Collectors.joining("_")));
+            fieldTemplate.setCompositeFieldName(way.collect(Collectors.joining(
+                    conf.getFieldNameDelimiter(),
+                    conf.getFieldNamePrefix(),
+                    conf.getFieldNameSuffix())));
             fieldTemplate.setWayToObject(fieldTemplate.getWayToObject().equals(".()") ? "" : fieldTemplate.getWayToObject());
             fieldTemplates.add(fieldTemplate);
         }
         if (node.getModels() != null) {
-            node.getModels().forEach(this::nodeToField);
+            node.getModels().forEach(v -> nodeToField(v, conf));
         }
     }
 
@@ -89,7 +98,7 @@ public class ModelResolver {
 
         if (depth == maxDepth) {
             node.setModels(null);
-            node.getParameters().addAll(codegenModel.getAllVars());
+            node.setParameters(codegenModel.getAllVars());
         } else {
             List<Node> nodes = codegenModel.getAllVars().stream()
                     .filter(prop -> prop.complexType != null)
