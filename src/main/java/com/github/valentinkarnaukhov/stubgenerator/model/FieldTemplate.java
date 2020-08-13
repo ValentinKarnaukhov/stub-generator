@@ -8,7 +8,7 @@ import lombok.Setter;
 @Setter
 @Builder
 public class FieldTemplate {
-
+    
     private String fieldName;
     private String fieldType;
     private String methodFieldName;

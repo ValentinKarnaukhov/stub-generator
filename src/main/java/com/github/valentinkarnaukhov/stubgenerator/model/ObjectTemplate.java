@@ -7,10 +7,10 @@ import java.util.List;
 
 @Getter
 @Setter
-public class ResponseTemplate {
+public class ObjectTemplate {
 
-    private String responseType;
+    private String objectType;
     private String code;
     private String description;
-    private List<FieldTemplate> responseFields;
+    private List<FieldTemplate> fields;
 }

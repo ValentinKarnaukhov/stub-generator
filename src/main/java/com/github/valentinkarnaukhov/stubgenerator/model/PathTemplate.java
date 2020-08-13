@@ -12,7 +12,7 @@ public class PathTemplate {
     private String operationId;
     private String path;
     private String httpMethod;
-    private List<ResponseTemplate> responses;
+    private List<ObjectTemplate> responses;
     private List<FieldTemplate> queryParams;
     private List<FieldTemplate> bodyParams;
 }

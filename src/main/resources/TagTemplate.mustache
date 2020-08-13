@@ -45,18 +45,18 @@ public class {{tag}} {
 
         public class Code{{code}}Builder{
 
-            private {{#responseType}}{{responseType}}{{/responseType}}{{#description}}Object{{/description}} response;
+            private {{#objectType}}{{objectType}}{{/objectType}}{{#description}}Object{{/description}} response;
 
             public Code{{code}}Builder(){
-                this.response = {{#responseType}}new {{responseType}}(){{/responseType}}{{#description}}"{{description}}"{{/description}};
+                this.response = {{#objectType}}new {{objectType}}(){{/objectType}}{{#description}}"{{description}}"{{/description}};
             }
 
-            {{#responseFields}}
+            {{#fields}}
             public Code{{code}}Builder with{{compositeFieldName}}({{{fieldType}}} {{methodFieldName}}) {
                 response{{wayToObject}}.{{setterName}}({{methodFieldName}});
                 return this;
             }
-            {{/responseFields}}
+            {{/fields}}
             public StubMapping buildStub() {
                 return {{httpMethod}}(urlPattern)
                         .withQueryParams(queryParams)
@@ -76,4 +76,23 @@ public class {{tag}} {
 
     }
     {{/paths}}
+
+    private static class CollectionValueBuilder<E, V> {
+        private E enter;
+        private List<V> collection;
+        private V value;
+
+        public CollectionValueBuilder<E, V> addNew() {
+            this.collection.add(value);
+            return new CollectionValueBuilder<E, V>(enter);
+        }
+
+        public CollectionValueBuilder(E enter) {
+            this.enter = enter;
+        }
+
+        public E exit() {
+            return this.enter;
+        }
+    }
 }

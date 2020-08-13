@@ -76,7 +76,9 @@ paths:
           name: "body1"
           required: false
           schema:
-            $ref: "#/definitions/ChildTestObject"
+            type: array
+            items:
+              $ref: "#/definitions/TestObject"
       responses:
         200:
           schema:

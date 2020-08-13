@@ -73,10 +73,9 @@ public class Parser {
         pathTemplate.setBodyParams(bodyParams);
 
         for (CodegenResponse response : oper.getResponses()) {
-            ResponseTemplate responseTemplate = processResponse(response, responses);
+            ObjectTemplate responseTemplate = processResponse(response, responses);
             pathTemplate.getResponses().add(responseTemplate);
         }
-
         return pathTemplate;
     }
 
@@ -89,16 +88,16 @@ public class Parser {
     }
 
 
-    private ResponseTemplate processResponse(CodegenResponse response, ApiResponses responses) {
-        ResponseTemplate responseTemplate = new ResponseTemplate();
+    private ObjectTemplate processResponse(CodegenResponse response, ApiResponses responses) {
+        ObjectTemplate responseTemplate = new ObjectTemplate();
         responseTemplate.setCode(response.getCode());
-        responseTemplate.setResponseType(response.getDataType());
-        responseTemplate.setResponseFields(new ArrayList<>());
+        responseTemplate.setObjectType(response.getDataType());
+        responseTemplate.setFields(new ArrayList<>());
 
         CodegenModel responseModel = generator.getAllModels().get(response.getBaseType());
         if (responseModel != null) {
             List<FieldTemplate> responseFields = modelResolver.resolveFlatten(responseModel, generator.getMaxDepth(), ResolverConfFactory.getForResponse());
-            responseTemplate.setResponseFields(responseFields);
+            responseTemplate.setFields(responseFields);
         } else {
             responseTemplate.setDescription(responses.get(response.getCode()).getDescription());
         }

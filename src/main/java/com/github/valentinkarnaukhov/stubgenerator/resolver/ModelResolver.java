@@ -1,6 +1,7 @@
 package com.github.valentinkarnaukhov.stubgenerator.resolver;
 
 import com.github.valentinkarnaukhov.stubgenerator.model.FieldTemplate;
+import com.github.valentinkarnaukhov.stubgenerator.model.ObjectTemplate;
 import io.swagger.codegen.v3.CodegenModel;
 import io.swagger.codegen.v3.CodegenParameter;
 import io.swagger.codegen.v3.CodegenProperty;
@@ -8,11 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static io.swagger.codegen.v3.generators.DefaultCodegenConfig.camelize;
 
@@ -20,6 +18,7 @@ public class ModelResolver {
 
     private final Map<String, CodegenModel> allModels;
     private List<FieldTemplate> fieldTemplates;
+    @Getter private final Set<ObjectTemplate> collections = new HashSet<>();
 
     public ModelResolver(Map<String, CodegenModel> allModels) {
         this.allModels = allModels;
@@ -33,7 +32,7 @@ public class ModelResolver {
     public List<FieldTemplate> resolveParameter(List<CodegenParameter> parameters, int maxDepth, ResolverConf conf) {
         List<FieldTemplate> fields = new ArrayList<>();
         for (CodegenParameter parameter : parameters) {
-            if (parameter.getIsPrimitiveType()) {
+            if (!this.allModels.containsKey(parameter.baseType)) {
                 FieldTemplate param = FieldTemplate.builder()
                         .fieldName(camelize(parameter.getParamName()))
                         .methodFieldName(parameter.getParamName())
@@ -42,7 +41,8 @@ public class ModelResolver {
                 fields.add(param);
             } else {
                 CodegenModel model = this.allModels.get(parameter.baseType);
-                fields.addAll(resolveFlatten(model, maxDepth, conf));
+                List<FieldTemplate> fieldTemplates = resolveFlatten(model, maxDepth, conf);
+                fields.addAll(fieldTemplates);
             }
         }
         return fields;
@@ -55,26 +55,8 @@ public class ModelResolver {
     }
 
     private void nodeToField(Node node, ResolverConf conf) {
-        for (CodegenProperty parameter : node.getParameters()) {
-            FieldTemplate fieldTemplate = FieldTemplate.builder()
-                    .fieldName(parameter.getNameInCamelCase())
-                    .methodFieldName(parameter.getName())
-                    .fieldType(parameter.getDatatypeWithEnum())
-                    .setterName(parameter.getSetter())
-                    .wayToObject(node.getWayToObject().stream()
-                            .map(CodegenProperty::getGetter)
-                            .collect(Collectors.joining(
-                                    conf.getWayToObjDelimiter(),
-                                    conf.getWayToObjPrefix(),
-                                    conf.getWayToObjSuffix())))
-                    .build();
-            Stream<String> way = Stream.concat(node.getWayToObject().stream().map(CodegenProperty::getNameInCamelCase),
-                    Stream.of(parameter.getNameInCamelCase()));
-            fieldTemplate.setCompositeFieldName(way.collect(Collectors.joining(
-                    conf.getFieldNameDelimiter(),
-                    conf.getFieldNamePrefix(),
-                    conf.getFieldNameSuffix())));
-            fieldTemplate.setWayToObject(fieldTemplate.getWayToObject().equals(".()") ? "" : fieldTemplate.getWayToObject());
+        for (CodegenProperty property : node.getProperties()) {
+            FieldTemplate fieldTemplate = conf.getPropertyToFields().apply(property, node);
             fieldTemplates.add(fieldTemplate);
         }
         if (node.getModels() != null) {
@@ -84,7 +66,7 @@ public class ModelResolver {
 
     private Node getNode(CodegenModel codegenModel, Node parent, CodegenProperty source, int depth, int maxDepth) {
         Node node = new Node();
-        node.setParameters(getProperties(codegenModel.getAllVars()));
+        node.setProperties(getProperties(codegenModel.getAllVars()));
         node.setDepth(depth);
 
         if (parent != null) {
@@ -98,7 +80,7 @@ public class ModelResolver {
 
         if (depth == maxDepth) {
             node.setModels(null);
-            node.setParameters(codegenModel.getAllVars());
+            node.setProperties(codegenModel.getAllVars());
         } else {
             List<Node> nodes = codegenModel.getAllVars().stream()
                     .filter(prop -> prop.complexType != null)
@@ -120,15 +102,10 @@ public class ModelResolver {
     @NoArgsConstructor
     public static class Node {
         private List<Node> models;
-        private List<CodegenProperty> parameters;
+        private List<CodegenProperty> properties;
         private List<CodegenProperty> wayToObject = new ArrayList<>();
         private int depth;
         private boolean visit;
-
-        public Node(List<CodegenProperty> parameters, int depth) {
-            this.parameters = parameters;
-            this.depth = depth;
-        }
     }
 
     private List<CodegenProperty> getProperties(List<CodegenProperty> properties) {
