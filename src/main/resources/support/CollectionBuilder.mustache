@@ -1,0 +1,21 @@
+package {{supportPackage}};
+
+import java.util.*;
+
+public class CollectionBuilder<E, V> {
+    private E enter;
+    private List<V> collection;
+    private V value;
+
+    public CollectionBuilder<E, V> addNew() {
+        return this;
+    }
+
+    public CollectionBuilder(E enter) {
+        this.enter = enter;
+    }
+
+    public E exit() {
+        return this.enter;
+    }
+}

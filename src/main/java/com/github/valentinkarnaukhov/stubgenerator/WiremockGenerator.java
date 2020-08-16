@@ -10,7 +10,11 @@ import org.apache.commons.lang3.ObjectUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Getter
 public class WiremockGenerator extends AbstractGenerator implements Generator {
@@ -21,17 +25,21 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
     private Parser parser;
     private Map<String, CodegenModel> allModels;
     private String stubPackage = null;
+    private String supportPackage = null;
     private Boolean generateModels = null;
     private Boolean generateStub = null;
     private Boolean explode = null;
     private Integer maxDepth = null;
     private final Map<String, String> generatorPropertyDefaults = new HashMap<>();
-    private final Map<String, String> importPackages = new HashMap<>();
+    private final Map<String, Object> importPackages = new HashMap<>();
+    private Path supportTemplatesFolder;
 
     @Override
     public List<File> generate() {
+        this.supportTemplatesFolder = Paths.get(this.config.customTemplateDir() + File.separator + "support");
         configureGeneratorProperties();
         generateModels(this.allModels);
+        generateSupportFiles();
 
         if (!generateStub) {
             return null;
@@ -69,6 +77,10 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
             this.stubPackage = generatorPropertyDefaults.get("stubPackage");
         }
 
+        if (generatorPropertyDefaults.containsKey("supportPackage")) {
+            this.supportPackage = generatorPropertyDefaults.get("supportPackage");
+        }
+
         if (generatorPropertyDefaults.containsKey("maxDepth")) {
             this.maxDepth = Integer.valueOf(generatorPropertyDefaults.get("maxDepth"));
         }
@@ -79,6 +91,7 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
 
         customOrDefault();
 
+        importPackages.put("supportPackage", supportPackage);
         importPackages.put("stubPackage", stubPackage);
         importPackages.put("modelPackage", config.modelPackage());
 
@@ -100,6 +113,10 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
             stubPackage = "com.github.valentinkarnaukhov.stubgenerator.stub";
         }
 
+        if (supportPackage == null) {
+            supportPackage = "com.github.valentinkarnaukhov.stubgenerator.support";
+        }
+
         if (maxDepth == null) {
             maxDepth = 3;
         }
@@ -115,6 +132,26 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
                     stubPackage.replace('.', '/') + File.separator + tagTemplate.getTag() + ".java";
             Map<String, Object> templateData = this.objectMapper.convertValue(tagTemplate, Map.class);
             processTemplateToFile(templateData, "TagTemplate.mustache", outputFilename);
+        } catch (Exception e) {
+            throw new RuntimeException("Can't process data to file");
+        }
+    }
+
+    private void generateSupportFiles() {
+        try {
+            List<String> templates = Files.walk(this.supportTemplatesFolder)
+                    .filter(Files::isRegularFile)
+                    .map(Path::getFileName)
+                    .map(Object::toString)
+                    .collect(Collectors.toList());
+            for (String templateName : templates) {
+                String outputFilename = config.getOutputDir() + File.separator + "src/main/java" + File.separator +
+                        supportPackage.replace('.', '/') + File.separator + templateName.split("\\.")[0] + ".java";
+                String adjustedOutputFilename = outputFilename.replaceAll("//", "/").replace('/', File.separatorChar);
+                String templateFile = this.supportTemplatesFolder + File.separator + templateName;
+                String rendered = config.getTemplateEngine().getRendered(templateFile, importPackages);
+                writeToFile(adjustedOutputFilename, rendered);
+            }
         } catch (Exception e) {
             throw new RuntimeException("Can't process data to file");
         }

@@ -1,0 +1,135 @@
+package {{importPackages.stubPackage}};
+
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.matching.*;
+import com.github.tomakehurst.wiremock.stubbing.StubMapping;
+import com.github.tomakehurst.wiremock.stubbing.StubImport;
+import {{importPackages.modelPackage}}.*;
+
+import java.util.*;
+
+import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.jsonResponse;
+import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.like;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+
+public class {{tag}} {
+
+    {{#paths}}
+    public static class {{operationId}} {
+
+        private static final String PATH = "{{path}}";
+
+        private UrlPattern urlPattern;
+
+        {{#queryParams}}
+        {{#isPrimitive}}
+        public {{operationId}} {{prefix}}{{compositeName}}({{{type}}} {{name}}) {
+            return this;
+        }
+        {{/isPrimitive}}
+        {{/queryParams}}
+
+        {{#bodyParams}}
+        {{^isCollection}}
+        public {{operationId}} {{prefix}}{{compositeName}}({{{type}}} {{name}}) {
+            return this;
+        }
+        {{/isCollection}}
+        {{#isCollection}}
+        public {{operationId}} {{prefix}}{{compositeName}}({{{type}}} {{name}}) {
+            return this;
+        }
+        {{/isCollection}}
+        {{/bodyParams}}
+
+        {{#responses}}
+        public Code{{code}}Builder code{{code}}(){
+            return new Code{{code}}Builder();
+        }
+
+        public class Code{{code}}Builder{
+
+            private {{#objectType}}{{objectType}}{{/objectType}}{{#description}}Object{{/description}} response;
+
+            public Code{{code}}Builder(){
+                this.response = {{#objectType}}new {{objectType}}(){{/objectType}}{{#description}}"{{description}}"{{/description}};
+            }
+
+            {{#fields}}
+            public Code{{code}}Builder with{{compositeFieldName}}({{{fieldType}}} {{methodFieldName}}) {
+                response{{wayToObject}}.{{setterName}}({{methodFieldName}});
+                return this;
+            }
+            {{/fields}}
+            public StubMapping buildStub() {
+                return {{httpMethod}}(urlPattern)
+                        .withQueryParams(queryParams)
+                        .willReturn(like(jsonResponse(response))).build();
+            }
+
+            public void mock() {
+                {{#importPackages.delegateObject}}
+                {{importPackages.delegateObject}}.mock(buildStub());
+                {{/importPackages.delegateObject}}
+                {{^importPackages.delegateObject}}
+                WireMock.importStubs(StubImport.stubImport().stub(buildStub()).build());
+                {{/importPackages.delegateObject}}
+            }
+        }
+        {{/responses}}
+
+        {{#bodyParams}}
+        {{#fields}}
+        {{#isCollection}}
+        {{#isPrimitive}}
+        public static class {{name}}Builder extends CollectionValueBuilder<{{operationId}}, {{type}}> {
+
+            public {{name}}Builder({{operationId}} enter) {
+                super(enter);
+            }
+
+            @Override
+            public {{operationId}} exit(){
+                return super.enter;
+            }
+        }
+        {{/isPrimitive}}
+        {{^isPrimitive}}
+        public static class {{name}}Builder extends CollectionValueBuilder<{{operationId}}, {{type}}> {
+
+            public {{name}}Builder({{operationId}} enter) {
+                super(enter);
+            }
+
+            @Override
+            public {{operationId}} exit(){
+                return super.enter;
+            }
+        }
+        {{/isPrimitive}}
+        {{/isCollection}}
+        {{/fields}}
+        {{/bodyParams}}
+
+        public static class CollectionValueBuilder<E, V> {
+            protected E enter;
+            protected List<V> collection = new ArrayList<>();
+            protected V value;
+
+            public CollectionValueBuilder<E, V> addNew(V value) {
+                this.collection.add(value);
+                return this;
+            }
+
+            public CollectionValueBuilder(E enter) {
+                this.enter = enter;
+            }
+
+            public E exit() {
+                return this.enter;
+            }
+        }
+    }
+    {{/paths}}
+}

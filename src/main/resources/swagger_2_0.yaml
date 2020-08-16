@@ -10,81 +10,147 @@ tags:
 schemes:
   - "http"
 paths:
-#  /get/v1/object:
-#    get:
-#      tags:
-#        - "TestTagGet"
-#      summary: "Get object by params"
-#      operationId: "getObjectByParams"
-#      produces:
-#        - "application/json"
-#      parameters:
-#        - name: "param1"
-#          in: "query"
-#          description: "Param 1"
-#          required: false
-#          type: "string"
-#        - name: "param2"
-#          in: "query"
-#          description: "Param 2"
-#          required: false
-#          type: "integer"
-#          format: "int64"
-#      responses:
-#        200:
-#          schema:
-#            $ref: "#/definitions/Level1"
-#          description: "Ok"
-#        400:
-#          description: "Invalid request parameters"
-#        403:
-#          description: "Forbidden"
+  #  /get/v1/object:
+  #    get:
+  #      tags:
+  #        - "TestTagGet"
+  #      summary: "Get object by params"
+  #      operationId: "getObjectByParams"
+  #      produces:
+  #        - "application/json"
+  #      parameters:
+  #        - name: "param1"
+  #          in: "query"
+  #          description: "Param 1"
+  #          required: false
+  #          type: "string"
+  #        - name: "param2"
+  #          in: "query"
+  #          description: "Param 2"
+  #          required: false
+  #          type: "integer"
+  #          format: "int64"
+  #      responses:
+  #        200:
+  #          schema:
+  #            $ref: "#/definitions/Level1"
+  #          description: "Ok"
+  #        400:
+  #          description: "Invalid request parameters"
+  #        403:
+  #          description: "Forbidden"
   /put/v1/object:
-#    put:
-#      tags:
-#        - "TestTagPut"
-#      summary: "Put object"
-#      operationId: "putObject"
-#      parameters:
-#        - in: "body"
-#          name: "body1"
-#          required: false
-#          schema:
-#            type: "object"
-#            properties:
-#              bodyParam1:
-#                type: "string"
-#              bodyParam2:
-#                type: "integer"
-#        - name: "param1"
-#          in: "query"
-#          description: "Param 1"
-#          required: false
-#          type: "string"
-#      responses:
-#        200:
-#          schema:
-#            $ref: "#/definitions/TestObject"
-#          description: "Created"
-    post:
+    #    put:
+    #      tags:
+    #        - "TestTagPut"
+    #      summary: "Put object"
+    #      operationId: "putObject"
+    #      parameters:
+    #        - in: "body"
+    #          name: "body1"
+    #          required: false
+    #          schema:
+    #            type: "object"
+    #            properties:
+    #              bodyParam1:
+    #                type: "string"
+    #              bodyParam2:
+    #                type: "integer"
+    #        - name: "param1"
+    #          in: "query"
+    #          description: "Param 1"
+    #          required: false
+    #          type: "string"
+    #      responses:
+    #        200:
+    #          schema:
+    #            $ref: "#/definitions/TestObject"
+    #          description: "Created"
+    put:
       tags:
         - "TestTagPost"
       summary: "Post object"
       operationId: "postObject"
       parameters:
-        - in: "body"
-          name: "body1"
+#        - name: "param1"
+#          in: "query"
+#          description: "Param 1"
+#          required: false
+#          type: array
+#          items:
+#            type: string
+#        - name: "param2"
+#          in: "query"
+#          description: "Param 2"
+#          required: false
+#          type: string
+        - name: "primitive"
+          in: "body"
+          description: "Param 1"
           required: false
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/TestObject"
+            type: string
+#        - name: "object"
+#          in: "body"
+#          description: "Param 2"
+#          required: false
+#          schema:
+#            $ref: "#/definitions/Level1"
+#        - name: "primitiveList"
+#          in: "body"
+#          description: "Param 3"
+#          required: false
+#          schema:
+#            type: array
+#            items:
+#              type: string
+#        - name: "objectList"
+#          in: "body"
+#          description: "Param 4"
+#          required: false
+#          schema:
+#            type: array
+#            items:
+#              $ref: "#/definitions/InnerParam"
       responses:
         200:
           schema:
-            $ref: "#/definitions/TestObject"
+            $ref: "#/definitions/BodyParam"
           description: "Created"
 definitions:
+  BodyParam:
+    type: object
+    properties:
+      param1:
+        type: string
+      param2:
+        $ref: "#/definitions/InnerParam"
+  InnerParam:
+    type: object
+    properties:
+      inner1:
+        type: string
+  TestObj:
+    type: object
+    properties:
+      primParam:
+        type: string
+      objParam:
+        type: object
+        properties:
+          objParamField:
+            type: string
+      primListParam:
+        type: array
+        items:
+          type: string
+      objListParam:
+        type: array
+        items:
+          type: object
+          properties:
+            objListParamField:
+              type: string
   Level1:
     type: "object"
     properties:
@@ -118,12 +184,12 @@ definitions:
     properties:
       objectParam1:
         $ref: "#/definitions/ChildTestObject"
-      objectParam2:
-        type: "string"
   ChildTestObject:
     type: "object"
     properties:
       childObjectParam1:
-        type: "string"
-      childObjectParam2:
         $ref: "#/definitions/TestObject"
+      childObjectParam2:
+        type: array
+        items:
+          type: string

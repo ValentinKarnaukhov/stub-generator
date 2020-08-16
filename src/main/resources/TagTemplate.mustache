@@ -6,8 +6,10 @@ import com.github.tomakehurst.wiremock.matching.*;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.github.tomakehurst.wiremock.stubbing.StubImport;
 import {{importPackages.modelPackage}}.*;
+import {{importPackages.supportPackage}}.*;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.jsonResponse;
 import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.like;
@@ -25,11 +27,23 @@ public class {{tag}} {
         private final Map<String, StringValuePattern> queryParams = new LinkedHashMap<>();
 
         {{#queryParams}}
-        public {{operationId}} inQuery{{fieldName}}({{{fieldType}}} {{methodFieldName}}) {
-            queryParams.put("{{methodFieldName}}", equalTo({{methodFieldName}}.toString()));
+        {{#primitive}}
+        {{#collection}}
+        public {{type}}Builder {{prefix}}{{camelizedName}}() {
+            List<{{type}}> collection = new ArrayList<>();
+            Consumer<{{type}}> consumer = v -> queryParams.put("{{name}}", equalTo(v.toString()));
+            return new {{type}}Builder(this, collection, consumer);
+        }
+        {{/collection}}
+        {{^collection}}
+        public {{operationId}} {{prefix}}{{camelizedName}}({{{type}}} {{name}}) {
+            queryParams.put("{{name}}", equalTo({{name}}.toString()));
             return this;
         }
+        {{/collection}}
+        {{/primitive}}
         {{/queryParams}}
+
         {{#bodyParams}}
         public {{operationId}} inBody{{compositeFieldName}}({{{fieldType}}} {{methodFieldName}}) {
             MatchesJsonPathPattern pattern = new MatchesJsonPathPattern("{{wayToObject}}", equalTo({{methodFieldName}}.toString()));
@@ -74,25 +88,21 @@ public class {{tag}} {
         }
         {{/responses}}
 
+        {{#collections}}
+        {{#primitive}}
+        public static class {{type}}Builder extends PrimitiveCollectionBuilder<{{operationId}}, {{type}}> {
+            public {{type}}Builder({{operationId}} enter, Collection<{{type}}> collection, Consumer<{{type}}> consumer) {
+                super(enter, collection, consumer);
+            }
+        }
+        {{/primitive}}
+        {{^primitive}}
+        public static class {{type}}Builder extends CollectionBuilder<{{operationId}}, {{type}}> {
+
+        }
+        {{/primitive}}
+        {{/collections}}
     }
     {{/paths}}
 
-    private static class CollectionValueBuilder<E, V> {
-        private E enter;
-        private List<V> collection;
-        private V value;
-
-        public CollectionValueBuilder<E, V> addNew() {
-            this.collection.add(value);
-            return new CollectionValueBuilder<E, V>(enter);
-        }
-
-        public CollectionValueBuilder(E enter) {
-            this.enter = enter;
-        }
-
-        public E exit() {
-            return this.enter;
-        }
-    }
 }

@@ -11,7 +11,7 @@ import java.util.Map;
 public class TagTemplate {
 
     private String tag;
-    private Map<String, String> importPackages;
+    private Map<String, Object> importPackages;
     private List<PathTemplate> paths;
 
     public TagTemplate(String tag, List<PathTemplate> paths) {
