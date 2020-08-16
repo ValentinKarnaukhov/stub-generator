@@ -1,5 +1,6 @@
 package com.github.valentinkarnaukhov.stubgenerator.model;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,6 +9,7 @@ import java.util.List;
 
 @Getter
 @Setter
+@EqualsAndHashCode(of = "type")
 public class ObjectTemplate {
 
     private boolean isPrimitive = true;

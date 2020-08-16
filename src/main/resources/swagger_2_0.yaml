@@ -84,18 +84,18 @@ paths:
 #          description: "Param 2"
 #          required: false
 #          type: string
-        - name: "primitive"
-          in: "body"
-          description: "Param 1"
-          required: false
-          schema:
-            type: string
-#        - name: "object"
+#        - name: "primitive"
 #          in: "body"
-#          description: "Param 2"
+#          description: "Param 1"
 #          required: false
 #          schema:
-#            $ref: "#/definitions/Level1"
+#            type: string
+        - name: "object"
+          in: "body"
+          description: "Param 2"
+          required: false
+          schema:
+            $ref: "#/definitions/Level1"
 #        - name: "primitiveList"
 #          in: "body"
 #          description: "Param 3"
@@ -111,7 +111,7 @@ paths:
 #          schema:
 #            type: array
 #            items:
-#              $ref: "#/definitions/InnerParam"
+#              $ref: "#/definitions/Level1"
       responses:
         200:
           schema:

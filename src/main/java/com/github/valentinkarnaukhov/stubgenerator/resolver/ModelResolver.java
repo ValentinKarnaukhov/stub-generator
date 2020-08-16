@@ -20,9 +20,9 @@ public class ModelResolver {
     private final Map<String, CodegenModel> allModels;
     private List<FieldTemplate> fieldTemplates;
     private ResolverConf conf;
-    private int maxDepth = 5;
+    private int maxDepth = 6;
     @Getter
-    private final Set<Field> collections = new HashSet<>();
+    private final Set<ObjectTemplate> collections = new HashSet<>();
 
     public ModelResolver(Map<String, CodegenModel> allModels, ResolverConf conf) {
         this.allModels = allModels;
@@ -108,7 +108,10 @@ public class ModelResolver {
         Node node = modelToNode(model, null, null, 0);
         List<Field> fields = new ArrayList<>();
         parseNode(node, fields);
-        this.collections.addAll(fields.stream().filter(Field::isCollection).collect(Collectors.toList()));
+        this.collections.addAll(fields.stream()
+                .filter(Field::isCollection)
+                .map(Field::toObjectTemplate)
+                .collect(Collectors.toList()));
         return fields;
     }
 
@@ -118,6 +121,8 @@ public class ModelResolver {
             Field field = new Field();
             field.setName(key);
             field.setCompositeName(this.conf.getCompositeNameFunction().apply(parameter));
+            field.setWayToParent(this.conf.getWayToParentFunction().apply(parameter));
+
             if (parameter.getSourceModel() != null) {
                 field.setPrimitive(false);
                 field.setType(parameter.getSourceModel().getDataType());

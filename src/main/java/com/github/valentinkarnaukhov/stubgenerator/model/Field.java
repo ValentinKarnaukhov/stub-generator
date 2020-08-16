@@ -17,4 +17,12 @@ public class Field {
     private String wayToParent;
     private String compositeName;
 
+    public ObjectTemplate toObjectTemplate(){
+        ObjectTemplate objectTemplate = new ObjectTemplate();
+        objectTemplate.setPrimitive(isPrimitive);
+        objectTemplate.setCollection(isCollection);
+        objectTemplate.setType(type);
+        return objectTemplate;
+    }
+
 }

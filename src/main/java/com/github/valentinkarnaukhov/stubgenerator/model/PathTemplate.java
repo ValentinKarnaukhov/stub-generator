@@ -17,5 +17,5 @@ public class PathTemplate {
     private List<ObjectTemplateTmp> responses;
     private List<ObjectTemplate> queryParams;
     private List<ObjectTemplate> bodyParams;
-    private Set<Object> collections = new HashSet<>();
+    private Set<ObjectTemplate> collections = new HashSet<>();
 }

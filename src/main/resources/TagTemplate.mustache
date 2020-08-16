@@ -23,9 +23,17 @@ public class {{tag}} {
         private static final String PATH = "{{path}}";
 
         private UrlPattern urlPattern;
-        private List<ContentPattern> bodyPatterns = new ArrayList<>();
+        {{#bodyParams}}
+        {{#collection}}
+        private Collection<{{type}}> {{name}} = new ArrayList<>();
+        {{/collection}}
+        {{^collection}}
+        private {{type}} {{name}};
+        {{/collection}}
+        {{/bodyParams}}
         private final Map<String, StringValuePattern> queryParams = new LinkedHashMap<>();
 
+        //query section
         {{#queryParams}}
         {{#primitive}}
         {{#collection}}
@@ -44,12 +52,39 @@ public class {{tag}} {
         {{/primitive}}
         {{/queryParams}}
 
+        //body section
         {{#bodyParams}}
-        public {{operationId}} inBody{{compositeFieldName}}({{{fieldType}}} {{methodFieldName}}) {
-            MatchesJsonPathPattern pattern = new MatchesJsonPathPattern("{{wayToObject}}", equalTo({{methodFieldName}}.toString()));
-            bodyPatterns.add(pattern);
+        {{#primitive}}
+        {{#collection}}
+        //primitive collection
+        {{/collection}}
+        public {{type}}Builder {{prefix}}() {
+            List<{{type}}> collection = new ArrayList<>();
+            Consumer<{{type}}> consumer = v -> {{name}}.add(v);
+            return new {{type}}Builder(this, collection, consumer);
+        }
+        {{^collection}}
+        //primitive obj
+        public {{operationId}} {{prefix}}({{{type}}} {{name}}) {
+            this.{{name}} = {{name}};
             return this;
         }
+        {{/collection}}
+        {{/primitive}}
+        {{^primitive}}
+        {{#collection}}
+        //obj collection
+        {{/collection}}
+        {{^collection}}
+        //obj
+        {{#fields}}
+        public {{operationId}} {{compositeName}}({{{type}}} {{name}}){
+            {{#..}}{{name}}{{/..}}{{wayToParent}}.{{setter}}({{name}});
+            return this;
+        }
+        {{/fields}}
+        {{/collection}}
+        {{/primitive}}
         {{/bodyParams}}
 
         {{#responses}}

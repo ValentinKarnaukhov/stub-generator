@@ -86,8 +86,7 @@ public class Parser {
         pathTemplate.getCollections().addAll(bodyParamResolver.getCollections());
         Stream<ObjectTemplate> params = Stream.concat(queryParams.stream(), bodyParams.stream());
         pathTemplate.getCollections().addAll(params
-                .map(ObjectTemplate::toField)
-                .filter(Field::isCollection)
+                .filter(ObjectTemplate::isCollection)
                 .collect(Collectors.toList()));
         return pathTemplate;
     }
