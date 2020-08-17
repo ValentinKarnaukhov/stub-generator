@@ -95,7 +95,7 @@ paths:
           description: "Param 2"
           required: false
           schema:
-            $ref: "#/definitions/Level1"
+            $ref: "#/definitions/BodyParam"
 #        - name: "primitiveList"
 #          in: "body"
 #          description: "Param 3"
@@ -124,7 +124,15 @@ definitions:
       param1:
         type: string
       param2:
+        type: array
+        items:
+          type: string
+      param3:
         $ref: "#/definitions/InnerParam"
+      param4:
+        type: array
+        items:
+          $ref: "#/definitions/InnerParam"
   InnerParam:
     type: object
     properties:

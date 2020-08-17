@@ -1,21 +1,15 @@
 package {{supportPackage}};
 
 import java.util.*;
+import java.util.function.Consumer;
 
-public class CollectionBuilder<E, V> {
-    private E enter;
-    private List<V> collection;
-    private V value;
+public class CollectionBuilder<V> {
+    protected Collection<V> collection;
+    protected Consumer<V> consumer;
+    protected V value;
 
-    public CollectionBuilder<E, V> addNew() {
-        return this;
-    }
-
-    public CollectionBuilder(E enter) {
-        this.enter = enter;
-    }
-
-    public E exit() {
-        return this.enter;
+    public CollectionBuilder(Collection<V> collection, Consumer<V> consumer) {
+        this.collection = collection;
+        this.consumer = consumer;
     }
 }

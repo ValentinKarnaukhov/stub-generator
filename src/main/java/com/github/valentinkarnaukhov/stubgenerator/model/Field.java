@@ -14,6 +14,7 @@ public class Field {
     private String type;
     private String name;
     private String setter;
+    private String getter;
     private String wayToParent;
     private String compositeName;
 

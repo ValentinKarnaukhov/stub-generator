@@ -3,26 +3,12 @@ package {{supportPackage}};
 import java.util.*;
 import java.util.function.Consumer;
 
-public class PrimitiveCollectionBuilder<E, V> {
-    private E enter;
-    private Collection<V> collection;
-    private  Consumer<V> consumer;
+public class PrimitiveCollectionBuilder<V> {
+    protected Collection<V> collection;
+    protected  Consumer<V> consumer;
 
-    public PrimitiveCollectionBuilder<E, V> addNew(V value) {
-        this.collection.add(value);
-        return this;
-    }
-
-    public PrimitiveCollectionBuilder(E enter, Collection<V> collection, Consumer<V> consumer) {
-        this.enter = enter;
+    public PrimitiveCollectionBuilder(Collection<V> collection, Consumer<V> consumer) {
         this.collection = collection;
         this.consumer = consumer;
-    }
-
-    public E exit() {
-        for(V value : collection){
-            consumer.accept(value);
-        }
-        return this.enter;
     }
 }

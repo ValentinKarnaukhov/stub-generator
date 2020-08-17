@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static io.swagger.codegen.v3.generators.DefaultCodegenConfig.camelize;
@@ -108,9 +110,15 @@ public class ModelResolver {
         Node node = modelToNode(model, null, null, 0);
         List<Field> fields = new ArrayList<>();
         parseNode(node, fields);
+        Consumer<ObjectTemplate> afterToObj = obj -> {
+            if (this.allModels.containsKey(obj.getType())) {
+                obj.setFields(modelToFields(this.allModels.get(obj.getType())));
+            }
+        };
         this.collections.addAll(fields.stream()
                 .filter(Field::isCollection)
                 .map(Field::toObjectTemplate)
+                .peek(afterToObj)
                 .collect(Collectors.toList()));
         return fields;
     }
@@ -137,6 +145,7 @@ public class ModelResolver {
                 }
                 field.setCollection(parameter.getSourceProperty().getIsListContainer());
                 field.setSetter(parameter.getSourceProperty().getSetter());
+                field.setGetter(parameter.getSourceProperty().getGetter());
             }
             fields.add(field);
         }
@@ -161,7 +170,7 @@ public class ModelResolver {
 
         if (sourceModel != null) {
             Map<String, Node> parameters = sourceModel.getAllVars().stream()
-                    .filter(p -> p.getComplexType() == null || depth == maxDepth)
+                    .filter(p -> p.getComplexType() == null || p.getIsListContainer() || depth == maxDepth)
                     .collect(Collectors.groupingBy(CodegenProperty::getBaseName, Collectors.mapping(
                             p -> propertyToNode(p, sourceProperty, node, depth), Collectors.reducing(null, (a, b) -> b))));
             node.setParameters(parameters);
