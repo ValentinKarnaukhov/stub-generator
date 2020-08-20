@@ -12,15 +12,16 @@ import io.swagger.v3.oas.models.responses.ApiResponses;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Parser {
 
     private final WiremockGenerator generator;
-    private ModelResolver modelResolver;
     private ModelResolver queryParamResolver;
     private ModelResolver bodyParamResolver;
+    private ModelResolver responseResolver;
 
     public Parser(WiremockGenerator generator) {
         this.generator = generator;
@@ -29,7 +30,7 @@ public class Parser {
     public List<TagTemplate> parse() {
         this.queryParamResolver = new ModelResolver(this.generator.getAllModels(), ResolverConfFactory.getForQuery());
         this.bodyParamResolver = new ModelResolver(this.generator.getAllModels(), ResolverConfFactory.getForBody());
-        this.modelResolver = new ModelResolver(this.generator.getAllModels(), ResolverConfFactory.getForQuery());
+        this.responseResolver = new ModelResolver(this.generator.getAllModels(), ResolverConfFactory.getForBody());
 
         OpenAPI openAPI = generator.getOpenAPI();
 
@@ -78,42 +79,42 @@ public class Parser {
         List<ObjectTemplate> bodyParams = processBodyParameters(oper.getBodyParams());
         pathTemplate.setBodyParams(bodyParams);
 
+        List<ResponseTemplate> responsesParams = new ArrayList<>();
         for (CodegenResponse response : oper.getResponses()) {
-            ObjectTemplateTmp responseTemplate = processResponse(response, responses);
-            pathTemplate.getResponses().add(responseTemplate);
+            responsesParams.add(processResponse(response, responses));
         }
+        pathTemplate.setResponses(responsesParams);
+
         pathTemplate.getCollections().addAll(queryParamResolver.getCollections());
         pathTemplate.getCollections().addAll(bodyParamResolver.getCollections());
-        Stream<ObjectTemplate> params = Stream.concat(queryParams.stream(), bodyParams.stream());
-        pathTemplate.getCollections().addAll(params
+        pathTemplate.getCollections().addAll(responseResolver.getCollections());
+        Supplier<Stream<ObjectTemplate>> paramsSup = () -> {
+            Stream<ObjectTemplate> params = Stream.concat(queryParams.stream(), bodyParams.stream());
+            params = Stream.concat(params, responsesParams.stream().map(ResponseTemplate::getResponse));
+            return params;
+        };
+        pathTemplate.getCollections().addAll(paramsSup.get()
                 .filter(ObjectTemplate::isCollection)
                 .collect(Collectors.toList()));
+
+        pathTemplate.setParams(paramsSup.get().collect(Collectors.toList()));
         return pathTemplate;
     }
 
     private List<ObjectTemplate> processQueryParameters(List<CodegenParameter> parameters) {
-        return queryParamResolver.parametersToObject(parameters);
+        return queryParamResolver.parametersToObjects(parameters);
     }
 
     private List<ObjectTemplate> processBodyParameters(List<CodegenParameter> parameters) {
-        return bodyParamResolver.parametersToObject(parameters);
+        return bodyParamResolver.parametersToObjects(parameters);
     }
 
 
-    private ObjectTemplateTmp processResponse(CodegenResponse response, ApiResponses responses) {
-        ObjectTemplateTmp responseTemplate = new ObjectTemplateTmp();
+    private ResponseTemplate processResponse(CodegenResponse response, ApiResponses responses) {
+        ResponseTemplate responseTemplate = new ResponseTemplate();
+        responseTemplate.setDescription(responses.get(response.getCode()).getDescription());
         responseTemplate.setCode(response.getCode());
-        responseTemplate.setObjectType(response.getDataType());
-        responseTemplate.setFields(new ArrayList<>());
-
-        CodegenModel responseModel = generator.getAllModels().get(response.getBaseType());
-        if (responseModel != null) {
-            List<FieldTemplate> responseFields = modelResolver.resolveFlatten(responseModel, ResolverConfFactory.getForResponse());
-            responseTemplate.setFields(responseFields);
-        } else {
-            responseTemplate.setDescription(responses.get(response.getCode()).getDescription());
-        }
-
+        responseTemplate.setResponse(responseResolver.responseToObject(response));
         return responseTemplate;
     }
 

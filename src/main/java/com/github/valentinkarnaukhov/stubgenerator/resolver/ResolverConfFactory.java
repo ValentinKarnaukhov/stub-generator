@@ -48,8 +48,18 @@ public class ResolverConfFactory {
                             .collect(Collectors.joining(conf.getWayToParentDelimiter(), conf.getWayToParentPrefix(), conf.getWayToParentSuffix()));
                     return res.equals(".()") ? "" : res;
                 };
+        Function<ModelResolver.Node, String> parentSetterFunction =
+                n -> {
+                    String res = n.getWay().stream()
+                            .limit(n.getWay().isEmpty() ? 0 : n.getWay().size() - 1)
+                            .map(CodegenProperty::getGetter)
+                            .collect(Collectors.joining(conf.getWayToParentDelimiter(), conf.getWayToParentPrefix(), conf.getWayToParentSuffix()));
+                    res = res.equals(".()") ? "" : res;
+                    return n.getWay().isEmpty() ? res : res + n.getWay().get(n.getWay().size() - 1).getSetter();
+                };
         conf.setCompositeNameFunction(compositeNameFunction);
         conf.setWayToParentFunction(wayToParentFunction);
+        conf.setParentSetterFunction(parentSetterFunction);
         return conf;
     }
 }

@@ -72,18 +72,18 @@ paths:
       summary: "Post object"
       operationId: "postObject"
       parameters:
-#        - name: "param1"
-#          in: "query"
-#          description: "Param 1"
-#          required: false
-#          type: array
-#          items:
-#            type: string
-#        - name: "param2"
-#          in: "query"
-#          description: "Param 2"
-#          required: false
-#          type: string
+        - name: "param1"
+          in: "query"
+          description: "Param 1"
+          required: false
+          type: array
+          items:
+            type: string
+        - name: "param2"
+          in: "query"
+          description: "Param 2"
+          required: false
+          type: string
 #        - name: "primitive"
 #          in: "body"
 #          description: "Param 1"
@@ -116,7 +116,23 @@ paths:
         200:
           schema:
             $ref: "#/definitions/BodyParam"
-          description: "Created"
+          description: "Obj"
+        201:
+          schema:
+            type: string
+          description: "Prim"
+        202:
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/BodyParam"
+          description: "List obj"
+        203:
+          schema:
+            type: array
+            items:
+              type: string
+          description: "List prim"
 definitions:
   BodyParam:
     type: object

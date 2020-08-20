@@ -3,16 +3,17 @@ package com.github.valentinkarnaukhov.stubgenerator.resolver;
 import com.github.valentinkarnaukhov.stubgenerator.model.Field;
 import com.github.valentinkarnaukhov.stubgenerator.model.FieldTemplate;
 import com.github.valentinkarnaukhov.stubgenerator.model.ObjectTemplate;
+import com.google.common.collect.Iterables;
 import io.swagger.codegen.v3.CodegenModel;
 import io.swagger.codegen.v3.CodegenParameter;
 import io.swagger.codegen.v3.CodegenProperty;
+import io.swagger.codegen.v3.CodegenResponse;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static io.swagger.codegen.v3.generators.DefaultCodegenConfig.camelize;
@@ -75,10 +76,12 @@ public class ModelResolver {
         objectTemplate.setName(parameter.getParamName());
         objectTemplate.setCamelizedName(camelize(parameter.getParamName()));
         objectTemplate.setPrefix(this.conf.getCompNamePrefix());
+        objectTemplate.setValue(parameter.getDefaultValue());
         if (!this.allModels.containsKey(parameter.getDataType()) && !parameter.getIsListContainer()) {
             //primitive
             objectTemplate.setPrimitive(true);
             objectTemplate.setCollection(false);
+            objectTemplate.setBaseType(parameter.getDataType());
             objectTemplate.setType(parameter.getDataType());
         } else {
             if (parameter.getIsListContainer()) {
@@ -86,23 +89,66 @@ public class ModelResolver {
                     //primitive list
                     objectTemplate.setPrimitive(true);
                     objectTemplate.setCollection(true);
-                    objectTemplate.setType(parameter.getItems().getBaseType());
+                    objectTemplate.setBaseType(parameter.getItems().getBaseType());
+                    objectTemplate.setType(parameter.getDataType());
                 } else {
                     //obj list
                     objectTemplate.setPrimitive(false);
                     objectTemplate.setCollection(true);
                     objectTemplate.setFields(modelToFields(this.allModels.get(parameter.getBaseType())));
-                    objectTemplate.setType(parameter.getItems().getBaseType());
+                    objectTemplate.setBaseType(parameter.getItems().getBaseType());
+                    objectTemplate.setType(parameter.getDataType());
                 }
             } else {
                 //obj
                 objectTemplate.setPrimitive(false);
                 objectTemplate.setCollection(false);
                 objectTemplate.setFields(modelToFields(this.allModels.get(parameter.getBaseType())));
+                objectTemplate.setBaseType(parameter.getBaseType());
                 objectTemplate.setType(parameter.getBaseType());
             }
         }
 
+        return objectTemplate;
+    }
+
+    public ObjectTemplate responseToObject(CodegenResponse codegenResponse) {
+        ObjectTemplate objectTemplate = new ObjectTemplate();
+        objectTemplate.setName("code"+codegenResponse.getCode()+"Resp");
+        objectTemplate.setCamelizedName("");
+        objectTemplate.setPrefix(this.conf.getCompNamePrefix());
+        objectTemplate.setValue("");
+        if (!this.allModels.containsKey(codegenResponse.getDataType()) && !codegenResponse.getIsListContainer()) {
+            //primitive
+            objectTemplate.setPrimitive(true);
+            objectTemplate.setCollection(false);
+            objectTemplate.setBaseType(codegenResponse.getDataType());
+            objectTemplate.setType(codegenResponse.getDataType());
+        } else {
+            if (codegenResponse.getIsListContainer()) {
+                if (!this.allModels.containsKey(codegenResponse.getBaseType())) {
+                    //primitive list
+                    objectTemplate.setPrimitive(true);
+                    objectTemplate.setCollection(true);
+                    objectTemplate.setBaseType(codegenResponse.getBaseType());
+                    objectTemplate.setType(codegenResponse.getDataType());
+                } else {
+                    //obj list
+                    objectTemplate.setPrimitive(false);
+                    objectTemplate.setCollection(true);
+                    objectTemplate.setFields(modelToFields(this.allModels.get(codegenResponse.getBaseType())));
+                    objectTemplate.setBaseType(codegenResponse.getBaseType());
+                    objectTemplate.setType(codegenResponse.getDataType());
+                }
+            } else {
+                //obj
+                objectTemplate.setPrimitive(false);
+                objectTemplate.setCollection(false);
+                objectTemplate.setFields(modelToFields(this.allModels.get(codegenResponse.getBaseType())));
+                objectTemplate.setBaseType(codegenResponse.getBaseType());
+                objectTemplate.setType(codegenResponse.getBaseType());
+            }
+        }
         return objectTemplate;
     }
 
@@ -111,8 +157,8 @@ public class ModelResolver {
         List<Field> fields = new ArrayList<>();
         parseNode(node, fields);
         Consumer<ObjectTemplate> afterToObj = obj -> {
-            if (this.allModels.containsKey(obj.getType())) {
-                obj.setFields(modelToFields(this.allModels.get(obj.getType())));
+            if (this.allModels.containsKey(obj.getBaseType())) {
+                obj.setFields(modelToFields(this.allModels.get(obj.getBaseType())));
             }
         };
         this.collections.addAll(fields.stream()
@@ -130,29 +176,35 @@ public class ModelResolver {
             field.setName(key);
             field.setCompositeName(this.conf.getCompositeNameFunction().apply(parameter));
             field.setWayToParent(this.conf.getWayToParentFunction().apply(parameter));
+            field.setParentSetter(this.conf.getParentSetterFunction().apply(parameter));
+
+            CodegenProperty lastInWay = parameter.getWay().isEmpty() ? null : parameter.getWay().get(parameter.getWay().size() - 1);
+            field.setParentType(lastInWay != null ? lastInWay.getBaseType() : null);
 
             if (parameter.getSourceModel() != null) {
                 field.setPrimitive(false);
-                field.setType(parameter.getSourceModel().getDataType());
+                field.setBaseType(parameter.getSourceModel().getDataType());
             }
             if (parameter.getSourceProperty() != null) {
                 if (parameter.getSourceProperty().getIsListContainer()) {
                     field.setPrimitive(parameter.getSourceProperty().getItems().getIsPrimitiveType());
-                    field.setType(parameter.getSourceProperty().getItems().getBaseType());
+                    field.setBaseType(parameter.getSourceProperty().getItems().getBaseType());
                 } else {
                     field.setPrimitive(parameter.getSourceProperty().getIsPrimitiveType());
-                    field.setType(parameter.getSourceProperty().getBaseType());
+                    field.setBaseType(parameter.getSourceProperty().getBaseType());
                 }
                 field.setCollection(parameter.getSourceProperty().getIsListContainer());
                 field.setSetter(parameter.getSourceProperty().getSetter());
                 field.setGetter(parameter.getSourceProperty().getGetter());
+                field.setType(parameter.getSourceProperty().getDatatype());
+                field.setValue(parameter.getSourceProperty().getDefaultValue());
             }
             fields.add(field);
         }
         node.getModels().values().forEach(v -> parseNode(v, fields));
     }
 
-    public List<ObjectTemplate> parametersToObject(List<CodegenParameter> parameters) {
+    public List<ObjectTemplate> parametersToObjects(List<CodegenParameter> parameters) {
         return parameters.stream().map(this::parameterToObject).collect(Collectors.toList());
     }
 

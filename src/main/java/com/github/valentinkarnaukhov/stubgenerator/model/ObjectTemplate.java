@@ -18,13 +18,7 @@ public class ObjectTemplate {
     private String name;
     private String camelizedName;
     private String prefix;
+    private String value;
+    private String baseType;
     private List<Field> fields = new ArrayList<>();
-
-    public Field toField(){
-        Field field = new Field();
-        field.setPrimitive(isPrimitive);
-        field.setCollection(isCollection);
-        field.setType(type);
-        return field;
-    }
 }

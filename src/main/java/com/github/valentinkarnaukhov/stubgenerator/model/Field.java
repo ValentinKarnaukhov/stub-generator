@@ -17,12 +17,17 @@ public class Field {
     private String getter;
     private String wayToParent;
     private String compositeName;
+    private String value;
+    private String baseType;
+    private String parentType;
+    private String parentSetter;
 
     public ObjectTemplate toObjectTemplate(){
         ObjectTemplate objectTemplate = new ObjectTemplate();
         objectTemplate.setPrimitive(isPrimitive);
         objectTemplate.setCollection(isCollection);
         objectTemplate.setType(type);
+        objectTemplate.setBaseType(baseType);
         return objectTemplate;
     }
 

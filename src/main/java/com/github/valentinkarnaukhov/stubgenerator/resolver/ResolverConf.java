@@ -15,5 +15,6 @@ public class ResolverConf {
     private final String wayToParentPrefix, wayToParentSuffix, wayToParentDelimiter;
     private Function<ModelResolver.Node, String> compositeNameFunction;
     private Function<ModelResolver.Node, String> wayToParentFunction;
+    private Function<ModelResolver.Node, String> parentSetterFunction;
 
 }

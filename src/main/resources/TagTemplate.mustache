@@ -23,28 +23,28 @@ public class {{tag}} {
         private static final String PATH = "{{path}}";
 
         private UrlPattern urlPattern;
-        {{#bodyParams}}
+        {{#params}}
         {{#collection}}
-        private Collection<{{type}}> {{name}} = new ArrayList<>();
+        private {{{type}}} {{name}} = {{{value}}};
         {{/collection}}
         {{^collection}}
-        private {{type}} {{name}} = new {{type}}();
+        private {{{baseType}}} {{name}} = new {{{baseType}}}();
         {{/collection}}
-        {{/bodyParams}}
+        {{/params}}
         private final Map<String, StringValuePattern> queryParams = new LinkedHashMap<>();
 
         //query section
         {{#queryParams}}
         {{#primitive}}
         {{#collection}}
-        public {{type}}Builder<{{operationId}}> {{prefix}}{{camelizedName}}() {
-            List<{{type}}> collection = new ArrayList<>();
-            Consumer<{{type}}> consumer = v -> queryParams.put("{{name}}", equalTo(v.toString()));
-            return new {{type}}Builder<{{operationId}}>(this, collection, consumer);
+        public {{{baseType}}}Builder<{{operationId}}> {{prefix}}{{camelizedName}}() {
+            {{{type}}} collection = {{{value}}};
+            Consumer<{{{baseType}}}> consumer = v -> queryParams.put("{{name}}", equalTo(v.toString()));
+            return new {{{baseType}}}Builder<{{operationId}}>(this, collection, consumer);
         }
         {{/collection}}
         {{^collection}}
-        public {{operationId}} {{prefix}}{{camelizedName}}({{{type}}} {{name}}) {
+        public {{operationId}} {{prefix}}{{camelizedName}}({{{baseType}}} {{name}}) {
             queryParams.put("{{name}}", equalTo({{name}}.toString()));
             return this;
         }
@@ -53,19 +53,18 @@ public class {{tag}} {
         {{/queryParams}}
 
         //body section
-        {{#bodyParams}}
+        {{#params}}
         {{#primitive}}
         {{#collection}}
         //primitive collection
         {{/collection}}
-        public {{type}}Builder<{{operationId}}> {{prefix}}() {
-            List<{{type}}> collection = new ArrayList<>();
-            Consumer<{{type}}> consumer = v -> {{name}}.add(v);
-            return new {{type}}Builder<{{operationId}}>(this, collection, consumer);
+        public {{{baseType}}}Builder<{{operationId}}> {{prefix}}() {
+            {{{type}}} collection = {{{value}}};
+            return new {{{baseType}}}Builder<{{operationId}}>(this, collection);
         }
         {{^collection}}
         //primitive obj
-        public {{operationId}} {{prefix}}({{{type}}} {{name}}) {
+        public {{operationId}} {{prefix}}({{{baseType}}} {{name}}) {
             this.{{name}} = {{name}};
             return this;
         }
@@ -74,33 +73,36 @@ public class {{tag}} {
         {{^primitive}}
         {{#collection}}
         //obj collection
-        public {{{type}}}Builder<{{operationId}}> {{prefix}}(){
-            Collection<{{{type}}}> collection = new ArrayList<>();
-            Consumer<{{{type}}}> consumer = v -> {{name}}.add(v);
-            return new {{{type}}}Builder<{{operationId}}>(this, collection, consumer);
+        public {{{baseType}}}Builder<{{operationId}}> {{prefix}}(){
+            {{{type}}} collection = {{{value}}};
+            return new {{{baseType}}}Builder<{{operationId}}>(this, collection);
         }
         {{/collection}}
         {{^collection}}
         //obj
         {{#fields}}
         {{#collection}}
-        public {{{type}}}Builder<{{operationId}}> {{compositeName}}(){
-            Collection<{{{type}}}> collection = new ArrayList<>();
-            {{#..}}{{name}}{{/..}}{{wayToParent}}.{{setter}}(collection);
-            Consumer<{{{type}}}> consumer = v -> {{#..}}{{name}}{{/..}}{{wayToParent}}.{{getter}}().add(v);
-            return new {{type}}Builder<{{operationId}}>(this, collection, consumer);
+        public {{{baseType}}}Builder<{{operationId}}> {{compositeName}}(){
+            {{{type}}} collection = {{{value}}};
+            {{../name}}{{wayToParent}}.{{setter}}(collection);
+            return new {{{baseType}}}Builder<{{operationId}}>(this, collection);
         }
         {{/collection}}
         {{^collection}}
-        public {{operationId}} {{compositeName}}({{{type}}} {{name}}){
-            {{#..}}{{name}}{{/..}}{{wayToParent}}.{{setter}}({{name}});
+        public {{operationId}} {{compositeName}}({{{baseType}}} {{name}}){
+            {{#parentType}}
+            if({{../../name}}{{wayToParent}} == null){
+                {{../../name}}.{{parentSetter}}(new {{{parentType}}}());
+            }
+            {{/parentType}}
+            {{../name}}{{wayToParent}}.{{setter}}({{name}});
             return this;
         }
         {{/collection}}
         {{/fields}}
         {{/collection}}
         {{/primitive}}
-        {{/bodyParams}}
+        {{/params}}
 
         {{#responses}}
         public Code{{code}}Builder code{{code}}(){
@@ -140,62 +142,76 @@ public class {{tag}} {
 
         {{#collections}}
         {{#primitive}}
-        public static class {{type}}Builder<E> extends PrimitiveCollectionBuilder<{{type}}> {
+        public static class {{{baseType}}}Builder<E> extends PrimitiveCollectionBuilder<{{{baseType}}}> {
 
             private E enter;
 
-            public {{type}}Builder(E enter, Collection<{{type}}> collection, Consumer<{{type}}> consumer) {
+            public {{{baseType}}}Builder(E enter, Collection<{{{baseType}}}> collection, Consumer<{{{baseType}}}> consumer) {
                 super(collection, consumer);
                 this.enter = enter;
             }
 
-            public {{type}}Builder<E> addNew({{type}} value) {
+            public {{{baseType}}}Builder(E enter, Collection<{{{baseType}}}> collection) {
+                super(collection, null);
+                this.enter = enter;
+            }
+
+            public {{{baseType}}}Builder<E> addNew({{{baseType}}} value) {
                 this.collection.add(value);
                 return this;
             }
 
             public E exit() {
-                for({{type}} value : super.collection){
-                    super.consumer.accept(value);
+                if(consumer!=null){
+                    super.collection.forEach(super.consumer);
                 }
                 return this.enter;
             }
         }
         {{/primitive}}
         {{^primitive}}
-        public static class {{type}}Builder<E> extends CollectionBuilder<{{type}}> {
+        public static class {{{baseType}}}Builder<E> extends CollectionBuilder<{{{baseType}}}> {
 
             private E enter;
 
-            public {{type}}Builder(E enter, Collection<{{type}}> collection, Consumer<{{type}}> consumer) {
+            public {{{baseType}}}Builder(E enter, Collection<{{{baseType}}}> collection, Consumer<{{{baseType}}}> consumer) {
                 super(collection, consumer);
                 this.enter = enter;
             }
 
-            public {{type}}Builder<E> addNew() {
-                super.value = new {{type}}();
+            public {{{baseType}}}Builder(E enter, Collection<{{{baseType}}}> collection) {
+                super(collection, null);
+                this.enter = enter;
+            }
+
+            public {{{baseType}}}Builder<E> addNew() {
+                super.value = new {{{baseType}}}();
                 super.collection.add(super.value);
                 return this;
             }
 
             {{#fields}}
             {{#collection}}
-            public {{{type}}}Builder<{{#..}}{{{type}}}Builder{{/..}}> {{compositeName}}(){
-                Collection<{{{type}}}> collection = new ArrayList<>();
-                Consumer<{{{type}}}> consumer = v -> super.value{{wayToParent}}.{{getter}}().add(v);
-                return new {{type}}Builder<{{#..}}{{{type}}}Builder{{/..}}>(this, collection, consumer);
+            public {{{baseType}}}Builder<{{{../baseType}}}Builder> {{compositeName}}(){
+                {{{type}}} collection = {{{value}}};
+                return new {{{baseType}}}Builder<{{{../baseType}}}Builder>(this, collection);
             }
             {{/collection}}
             {{^collection}}
-            public {{#..}}{{{type}}}Builder<E>{{/..}} {{compositeName}}({{{type}}} {{name}}){
+            public {{{../baseType}}}Builder<E>{{compositeName}}({{{baseType}}} {{name}}){
+                {{#parentType}}
+                if(super.value{{wayToParent}} == null){
+                    super.value.{{parentSetter}}(new {{{parentType}}}());
+                }
+                {{/parentType}}
                 super.value{{wayToParent}}.{{setter}}({{name}});
                 return this;
             }
             {{/collection}}
             {{/fields}}
             public E exit() {
-                for({{type}} value : super.collection){
-                    super.consumer.accept(value);
+                if(consumer!=null){
+                    super.collection.forEach(super.consumer);
                 }
                 return this.enter;
             }

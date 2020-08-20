@@ -14,8 +14,9 @@ public class PathTemplate {
     private String operationId;
     private String path;
     private String httpMethod;
-    private List<ObjectTemplateTmp> responses;
+    private List<ResponseTemplate> responses;
     private List<ObjectTemplate> queryParams;
     private List<ObjectTemplate> bodyParams;
+    private List<ObjectTemplate> params; // contains bodyParams and responses
     private Set<ObjectTemplate> collections = new HashSet<>();
 }
