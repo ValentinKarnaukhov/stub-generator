@@ -22,25 +22,30 @@ class WiremockTest {
     public void simpleCallToMock() throws ApiException {
         TestTagPostMock.PostObject postMock = new TestTagPostMock.PostObject();
         postMock
-                .inBodyParam1("123")
-                .inBodyParam2()
-                    .addNew("Test1")
-                    .addNew("Test2")
+                .inQueryParam1()
+                    .addNew("Q1")
                     .exit()
-                .inBodyParam3_Inner1("Inner")
-                .inBodyParam4()
-                    .addNew()
-                        .inBodyInner1("InnerList")
-                    .exit()
-                .code200();
+                .inQueryParam2("Q2")
+                .inBody("B1")
+                .code200()
+                    .inRespParam1("R1")
+                    .inRespParam2()
+                        .addNew("R2")
+                        .addNew("R3")
+                        .exit()
+                    .inRespParam3_Inner1("R4")
+                    .inRespParam4()
+                        .addNew()
+                            .inRespInner1("R5")
+                        .exit()
+                    .mock();
 
 
 
         TestTagPostApi testTagApi = new TestTagPostApi();
         List<String> qp = new ArrayList<>();
-        qp.add("1");
-        qp.add("2");
-        BodyParam bodyParam = testTagApi.postObject("0", qp, "3");
+        qp.add("Q1");
+        BodyParam bodyParam = testTagApi.postObject("0", qp, "Q2");
 
         System.out.println(bodyParam);
     }

@@ -84,18 +84,17 @@ paths:
           description: "Param 2"
           required: false
           type: string
-#        - name: "primitive"
+        - name: "primitive"
+          in: "body"
+          description: "Param 1"
+          schema:
+            type: string
+#        - name: "object"
 #          in: "body"
-#          description: "Param 1"
+#          description: "Param 2"
 #          required: false
 #          schema:
-#            type: string
-        - name: "object"
-          in: "body"
-          description: "Param 2"
-          required: false
-          schema:
-            $ref: "#/definitions/BodyParam"
+#            $ref: "#/definitions/BodyParam"
 #        - name: "primitiveList"
 #          in: "body"
 #          description: "Param 3"

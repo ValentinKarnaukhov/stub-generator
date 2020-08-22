@@ -23,8 +23,8 @@ public class ResolverConfFactory {
     }
 
     public static ResolverConf getForResponse() {
-        ResolverConf conf = ResolverConf.builder()
-                .build();
+        ResolverConf conf = getForBody();
+        conf.setCompNamePrefix("inResp");
         return conf;
     }
 
@@ -55,7 +55,7 @@ public class ResolverConfFactory {
                             .map(CodegenProperty::getGetter)
                             .collect(Collectors.joining(conf.getWayToParentDelimiter(), conf.getWayToParentPrefix(), conf.getWayToParentSuffix()));
                     res = res.equals(".()") ? "" : res;
-                    return n.getWay().isEmpty() ? res : res + n.getWay().get(n.getWay().size() - 1).getSetter();
+                    return n.getWay().isEmpty() ? res : res + conf.getWayToParentPrefix() + n.getWay().get(n.getWay().size() - 1).getSetter();
                 };
         conf.setCompositeNameFunction(compositeNameFunction);
         conf.setWayToParentFunction(wayToParentFunction);

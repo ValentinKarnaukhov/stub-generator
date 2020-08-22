@@ -76,7 +76,6 @@ public class ModelResolver {
         objectTemplate.setName(parameter.getParamName());
         objectTemplate.setCamelizedName(camelize(parameter.getParamName()));
         objectTemplate.setPrefix(this.conf.getCompNamePrefix());
-        objectTemplate.setValue(parameter.getDefaultValue());
         if (!this.allModels.containsKey(parameter.getDataType()) && !parameter.getIsListContainer()) {
             //primitive
             objectTemplate.setPrimitive(true);
@@ -99,6 +98,7 @@ public class ModelResolver {
                     objectTemplate.setBaseType(parameter.getItems().getBaseType());
                     objectTemplate.setType(parameter.getDataType());
                 }
+                objectTemplate.setValue(parameter.getItems().getDefaultValue());
             } else {
                 //obj
                 objectTemplate.setPrimitive(false);
@@ -113,12 +113,12 @@ public class ModelResolver {
     }
 
     public ObjectTemplate responseToObject(CodegenResponse codegenResponse) {
+        if (codegenResponse.getDataType() == null) {
+            return null;
+        }
         ObjectTemplate objectTemplate = new ObjectTemplate();
-        objectTemplate.setName("code"+codegenResponse.getCode()+"Resp");
-        objectTemplate.setCamelizedName("");
         objectTemplate.setPrefix(this.conf.getCompNamePrefix());
-        objectTemplate.setValue("");
-        if (!this.allModels.containsKey(codegenResponse.getDataType()) && !codegenResponse.getIsListContainer()) {
+        if (!this.allModels.containsKey(codegenResponse.getBaseType()) && !codegenResponse.getIsListContainer()) {
             //primitive
             objectTemplate.setPrimitive(true);
             objectTemplate.setCollection(false);

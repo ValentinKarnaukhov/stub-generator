@@ -23,22 +23,22 @@ public class {{tag}} {
         private static final String PATH = "{{path}}";
 
         private UrlPattern urlPattern;
-        {{#params}}
+        {{#bodyParams}}
         {{#collection}}
         private {{{type}}} {{name}} = {{{value}}};
         {{/collection}}
         {{^collection}}
-        private {{{baseType}}} {{name}} = new {{{baseType}}}();
+        {{#primitive}}private {{{baseType}}} {{name}};{{/primitive}}
+        {{^primitive}}private {{{baseType}}} {{name}} = new {{{baseType}}}();{{/primitive}}
         {{/collection}}
-        {{/params}}
+        {{/bodyParams}}
         private final Map<String, StringValuePattern> queryParams = new LinkedHashMap<>();
 
-        //query section
         {{#queryParams}}
         {{#primitive}}
         {{#collection}}
         public {{{baseType}}}Builder<{{operationId}}> {{prefix}}{{camelizedName}}() {
-            {{{type}}} collection = {{{value}}};
+            {{{type}}} collection = new ArrayList<>();
             Consumer<{{{baseType}}}> consumer = v -> queryParams.put("{{name}}", equalTo(v.toString()));
             return new {{{baseType}}}Builder<{{operationId}}>(this, collection, consumer);
         }
@@ -52,18 +52,14 @@ public class {{tag}} {
         {{/primitive}}
         {{/queryParams}}
 
-        //body section
-        {{#params}}
+        {{#bodyParams}}
         {{#primitive}}
         {{#collection}}
-        //primitive collection
-        {{/collection}}
         public {{{baseType}}}Builder<{{operationId}}> {{prefix}}() {
-            {{{type}}} collection = {{{value}}};
-            return new {{{baseType}}}Builder<{{operationId}}>(this, collection);
+            return new {{{baseType}}}Builder<{{operationId}}>(this, {{name}});
         }
+        {{/collection}}
         {{^collection}}
-        //primitive obj
         public {{operationId}} {{prefix}}({{{baseType}}} {{name}}) {
             this.{{name}} = {{name}};
             return this;
@@ -72,14 +68,11 @@ public class {{tag}} {
         {{/primitive}}
         {{^primitive}}
         {{#collection}}
-        //obj collection
         public {{{baseType}}}Builder<{{operationId}}> {{prefix}}(){
-            {{{type}}} collection = {{{value}}};
-            return new {{{baseType}}}Builder<{{operationId}}>(this, collection);
+            return new {{{baseType}}}Builder<{{operationId}}>(this, {{name}});
         }
         {{/collection}}
         {{^collection}}
-        //obj
         {{#fields}}
         {{#collection}}
         public {{{baseType}}}Builder<{{operationId}}> {{compositeName}}(){
@@ -92,7 +85,7 @@ public class {{tag}} {
         public {{operationId}} {{compositeName}}({{{baseType}}} {{name}}){
             {{#parentType}}
             if({{../../name}}{{wayToParent}} == null){
-                {{../../name}}.{{parentSetter}}(new {{{parentType}}}());
+                {{../../name}}{{parentSetter}}(new {{{parentType}}}());
             }
             {{/parentType}}
             {{../name}}{{wayToParent}}.{{setter}}({{name}});
@@ -102,7 +95,7 @@ public class {{tag}} {
         {{/fields}}
         {{/collection}}
         {{/primitive}}
-        {{/params}}
+        {{/bodyParams}}
 
         {{#responses}}
         public Code{{code}}Builder code{{code}}(){
@@ -110,19 +103,62 @@ public class {{tag}} {
         }
 
         public class Code{{code}}Builder{
+            {{#response}}
+            {{#collection}}
+            private {{{type}}} response = new ArrayList<>();
+            {{/collection}}
+            {{^collection}}
+            {{#primitive}}private {{{baseType}}} response;{{/primitive}}
+            {{^primitive}}private {{{baseType}}} response = new {{{baseType}}}();{{/primitive}}
+            {{/collection}}
+            {{/response}}
+            {{^response}}private String response = "{{description}}";{{/response}}
 
-            private {{#objectType}}{{objectType}}{{/objectType}}{{#description}}Object{{/description}} response;
-
-            public Code{{code}}Builder(){
-                this.response = {{#objectType}}new {{objectType}}(){{/objectType}}{{#description}}"{{description}}"{{/description}};
+            {{#response}}
+            {{#primitive}}
+            {{#collection}}
+            public {{{baseType}}}Builder<Code{{code}}Builder> {{prefix}}() {
+                return new {{{baseType}}}Builder<Code{{code}}Builder>(this, response);
             }
-
-            {{#fields}}
-            public Code{{code}}Builder with{{compositeFieldName}}({{{fieldType}}} {{methodFieldName}}) {
-                response{{wayToObject}}.{{setterName}}({{methodFieldName}});
+            {{/collection}}
+            {{^collection}}
+            public Code{{code}}Builder {{prefix}}({{{baseType}}} response) {
+                this.response = response;
                 return this;
             }
+            {{/collection}}
+            {{/primitive}}
+            {{^primitive}}
+            {{#collection}}
+            public {{{baseType}}}Builder<Code{{code}}Builder> {{prefix}}(){
+                return new {{{baseType}}}Builder<Code{{code}}Builder>(this, response);
+            }
+            {{/collection}}
+            {{^collection}}
+            {{#fields}}
+            {{#collection}}
+            public {{{baseType}}}Builder<Code{{code}}Builder> {{compositeName}}(){
+                {{{type}}} collection = {{{value}}};
+                response{{wayToParent}}.{{setter}}(collection);
+                return new {{{baseType}}}Builder<Code{{code}}Builder>(this, collection);
+            }
+            {{/collection}}
+            {{^collection}}
+            public Code{{code}}Builder {{compositeName}}({{{baseType}}} {{name}}){
+                {{#parentType}}
+                if(response{{wayToParent}} == null){
+                    response{{parentSetter}}(new {{{parentType}}}());
+                }
+                {{/parentType}}
+                response{{wayToParent}}.{{setter}}({{name}});
+                return this;
+            }
+            {{/collection}}
             {{/fields}}
+            {{/collection}}
+            {{/primitive}}
+            {{/response}}
+
             public StubMapping buildStub() {
                 return {{httpMethod}}(urlPattern)
                         .withQueryParams(queryParams)
@@ -201,7 +237,7 @@ public class {{tag}} {
             public {{{../baseType}}}Builder<E>{{compositeName}}({{{baseType}}} {{name}}){
                 {{#parentType}}
                 if(super.value{{wayToParent}} == null){
-                    super.value.{{parentSetter}}(new {{{parentType}}}());
+                    super.value{{parentSetter}}(new {{{parentType}}}());
                 }
                 {{/parentType}}
                 super.value{{wayToParent}}.{{setter}}({{name}});

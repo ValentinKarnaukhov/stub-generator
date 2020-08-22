@@ -8,7 +8,6 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Paths;
-import io.swagger.v3.oas.models.responses.ApiResponses;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -30,7 +29,7 @@ public class Parser {
     public List<TagTemplate> parse() {
         this.queryParamResolver = new ModelResolver(this.generator.getAllModels(), ResolverConfFactory.getForQuery());
         this.bodyParamResolver = new ModelResolver(this.generator.getAllModels(), ResolverConfFactory.getForBody());
-        this.responseResolver = new ModelResolver(this.generator.getAllModels(), ResolverConfFactory.getForBody());
+        this.responseResolver = new ModelResolver(this.generator.getAllModels(), ResolverConfFactory.getForResponse());
 
         OpenAPI openAPI = generator.getOpenAPI();
 
@@ -45,7 +44,7 @@ public class Parser {
 
                 CodegenOperation codegenOperation =
                         generator.getConfig().fromOperation(pathItem, method.name(), operation, openAPI.getComponents().getSchemas(), openAPI);
-                PathTemplate pathTemplate = operationToPath(codegenOperation, operation.getResponses());
+                PathTemplate pathTemplate = operationToPath(codegenOperation);
 
                 pathTemplates.computeIfPresent(operation.getTags().iterator().next(), (k, v) -> {
                     v.add(pathTemplate);
@@ -66,7 +65,7 @@ public class Parser {
         return tagTemplates;
     }
 
-    private PathTemplate operationToPath(CodegenOperation oper, ApiResponses responses) {
+    private PathTemplate operationToPath(CodegenOperation oper) {
         PathTemplate pathTemplate = new PathTemplate();
         pathTemplate.setOperationId(StringUtils.capitalize(oper.getOperationId()));
         pathTemplate.setPath(oper.getPath());
@@ -81,7 +80,7 @@ public class Parser {
 
         List<ResponseTemplate> responsesParams = new ArrayList<>();
         for (CodegenResponse response : oper.getResponses()) {
-            responsesParams.add(processResponse(response, responses));
+            responsesParams.add(processResponse(response));
         }
         pathTemplate.setResponses(responsesParams);
 
@@ -90,14 +89,13 @@ public class Parser {
         pathTemplate.getCollections().addAll(responseResolver.getCollections());
         Supplier<Stream<ObjectTemplate>> paramsSup = () -> {
             Stream<ObjectTemplate> params = Stream.concat(queryParams.stream(), bodyParams.stream());
-            params = Stream.concat(params, responsesParams.stream().map(ResponseTemplate::getResponse));
+            params = Stream.concat(params, responsesParams.stream().filter(v -> v.getResponse() != null)
+                    .map(ResponseTemplate::getResponse));
             return params;
         };
         pathTemplate.getCollections().addAll(paramsSup.get()
                 .filter(ObjectTemplate::isCollection)
                 .collect(Collectors.toList()));
-
-        pathTemplate.setParams(paramsSup.get().collect(Collectors.toList()));
         return pathTemplate;
     }
 
@@ -110,9 +108,9 @@ public class Parser {
     }
 
 
-    private ResponseTemplate processResponse(CodegenResponse response, ApiResponses responses) {
+    private ResponseTemplate processResponse(CodegenResponse response) {
         ResponseTemplate responseTemplate = new ResponseTemplate();
-        responseTemplate.setDescription(responses.get(response.getCode()).getDescription());
+        responseTemplate.setDescription(response.getMessage());
         responseTemplate.setCode(response.getCode());
         responseTemplate.setResponse(responseResolver.responseToObject(response));
         return responseTemplate;

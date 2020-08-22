@@ -11,7 +11,7 @@ import java.util.function.Function;
 @Setter
 public class ResolverConf {
 
-    private final String compNamePrefix, compNameSuffix, compNameDelimiter;
+    private String compNamePrefix, compNameSuffix, compNameDelimiter;
     private final String wayToParentPrefix, wayToParentSuffix, wayToParentDelimiter;
     private Function<ModelResolver.Node, String> compositeNameFunction;
     private Function<ModelResolver.Node, String> wayToParentFunction;
