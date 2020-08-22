@@ -4,11 +4,12 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.valentinkarnaukhov.stubgenerator.stub.TestTagPostMock;
 import io.swagger.client.ApiException;
 import io.swagger.client.api.TestTagPostApi;
-import io.swagger.client.model.BodyParam;
+import io.swagger.client.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 class WiremockTest {
@@ -26,7 +27,7 @@ class WiremockTest {
                     .addNew("Q1")
                     .exit()
                 .inQueryParam2("Q2")
-                .inBody("B1")
+                .inBody("TEST")
                 .code200()
                     .inRespParam1("R1")
                     .inRespParam2()
@@ -36,7 +37,6 @@ class WiremockTest {
                     .inRespParam3_Inner1("R4")
                     .inRespParam4()
                         .addNew()
-                            .inRespInner1("R5")
                         .exit()
                     .mock();
 
@@ -45,7 +45,10 @@ class WiremockTest {
         TestTagPostApi testTagApi = new TestTagPostApi();
         List<String> qp = new ArrayList<>();
         qp.add("Q1");
-        BodyParam bodyParam = testTagApi.postObject("0", qp, "Q2");
+        ListBody listBody = new ListBody();
+        listBody.setParam1(new ArrayList<>());
+        listBody.getParam1().add(new ListParam().param2("B1"));
+        BodyParam bodyParam = testTagApi.postObject("TEST", qp, "Q2");
 
         System.out.println(bodyParam);
     }

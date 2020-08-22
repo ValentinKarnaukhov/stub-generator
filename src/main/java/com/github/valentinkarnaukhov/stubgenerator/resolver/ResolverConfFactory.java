@@ -57,9 +57,17 @@ public class ResolverConfFactory {
                     res = res.equals(".()") ? "" : res;
                     return n.getWay().isEmpty() ? res : res + conf.getWayToParentPrefix() + n.getWay().get(n.getWay().size() - 1).getSetter();
                 };
+        Function<ModelResolver.Node, String> jsonPathFunction =
+                n -> {
+                    String res = n.getWay().stream()
+                            .map(CodegenProperty::getName)
+                            .collect(Collectors.joining(".","$.",""));
+                    return res.equals(".()") ? "" : res;
+                };
         conf.setCompositeNameFunction(compositeNameFunction);
         conf.setWayToParentFunction(wayToParentFunction);
         conf.setParentSetterFunction(parentSetterFunction);
+        conf.setJsonPathFunction(jsonPathFunction);
         return conf;
     }
 }

@@ -21,6 +21,7 @@ public class Field {
     private String baseType;
     private String parentType;
     private String parentSetter;
+    private String jsonPath;
 
     public ObjectTemplate toObjectTemplate(){
         ObjectTemplate objectTemplate = new ObjectTemplate();

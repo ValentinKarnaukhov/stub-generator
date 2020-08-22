@@ -1,9 +1,7 @@
 package com.github.valentinkarnaukhov.stubgenerator.resolver;
 
 import com.github.valentinkarnaukhov.stubgenerator.model.Field;
-import com.github.valentinkarnaukhov.stubgenerator.model.FieldTemplate;
 import com.github.valentinkarnaukhov.stubgenerator.model.ObjectTemplate;
-import com.google.common.collect.Iterables;
 import io.swagger.codegen.v3.CodegenModel;
 import io.swagger.codegen.v3.CodegenParameter;
 import io.swagger.codegen.v3.CodegenProperty;
@@ -21,7 +19,6 @@ import static io.swagger.codegen.v3.generators.DefaultCodegenConfig.camelize;
 public class ModelResolver {
 
     private final Map<String, CodegenModel> allModels;
-    private List<FieldTemplate> fieldTemplates;
     private ResolverConf conf;
     private int maxDepth = 6;
     @Getter
@@ -30,45 +27,6 @@ public class ModelResolver {
     public ModelResolver(Map<String, CodegenModel> allModels, ResolverConf conf) {
         this.allModels = allModels;
         this.conf = conf;
-    }
-
-    public List<FieldTemplate> resolveFlatten(CodegenModel codegenModel, ResolverConf conf) {
-        Node node = modelToNode(codegenModel, null, null, 0);
-        Field field = nodeToField(node);
-        return toFields(node, conf);
-    }
-
-    public List<FieldTemplate> resolveParameter(List<CodegenParameter> parameters, int maxDepth, ResolverConf conf) {
-        List<FieldTemplate> fields = new ArrayList<>();
-        for (CodegenParameter parameter : parameters) {
-            if (!this.allModels.containsKey(parameter.baseType)) {
-                FieldTemplate param = FieldTemplate.builder()
-                        .fieldName(camelize(parameter.getParamName()))
-                        .methodFieldName(parameter.getParamName())
-                        .fieldType(parameter.getDataType())
-                        .baseType(parameter.getBaseType())
-                        .build();
-                fields.add(param);
-            } else {
-                CodegenModel model = this.allModels.get(parameter.baseType);
-                List<FieldTemplate> fieldTemplates = resolveFlatten(model, conf);
-                fields.addAll(fieldTemplates);
-            }
-        }
-        return fields;
-    }
-
-    private List<FieldTemplate> toFields(Node node, ResolverConf conf) {
-        this.fieldTemplates = new ArrayList<>();
-        nodeToField(node);
-        return fieldTemplates;
-    }
-
-    private Field nodeToField(Node node) {
-        Field field = new Field();
-//        field.getFields().addAll(node.getProperties().stream().map(this::propertyToField).collect(Collectors.toList()));
-//        field.getFields().addAll(node.getModels().stream().map(this::nodeToField).collect(Collectors.toList()));
-        return null;
     }
 
     private ObjectTemplate parameterToObject(CodegenParameter parameter) {
@@ -156,6 +114,7 @@ public class ModelResolver {
         Node node = modelToNode(model, null, null, 0);
         List<Field> fields = new ArrayList<>();
         parseNode(node, fields);
+        //TODO solve infinity recursion
         Consumer<ObjectTemplate> afterToObj = obj -> {
             if (this.allModels.containsKey(obj.getBaseType())) {
                 obj.setFields(modelToFields(this.allModels.get(obj.getBaseType())));
@@ -177,7 +136,7 @@ public class ModelResolver {
             field.setCompositeName(this.conf.getCompositeNameFunction().apply(parameter));
             field.setWayToParent(this.conf.getWayToParentFunction().apply(parameter));
             field.setParentSetter(this.conf.getParentSetterFunction().apply(parameter));
-
+            field.setJsonPath(this.conf.getJsonPathFunction().apply(parameter));
             CodegenProperty lastInWay = parameter.getWay().isEmpty() ? null : parameter.getWay().get(parameter.getWay().size() - 1);
             field.setParentType(lastInWay != null ? lastInWay.getBaseType() : null);
 

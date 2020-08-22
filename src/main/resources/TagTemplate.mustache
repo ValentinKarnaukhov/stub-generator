@@ -1,8 +1,9 @@
 package {{importPackages.stubPackage}};
 
 import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.client.*;
 import com.github.tomakehurst.wiremock.matching.*;
+import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.github.tomakehurst.wiremock.stubbing.StubImport;
 import {{importPackages.modelPackage}}.*;
@@ -160,9 +161,23 @@ public class {{tag}} {
             {{/response}}
 
             public StubMapping buildStub() {
-                return {{httpMethod}}(urlPattern)
-                        .withQueryParams(queryParams)
-                        .willReturn(like(jsonResponse(response))).build();
+                MappingBuilder builder = {{httpMethod}}(urlPattern)
+                    .withQueryParams(queryParams)
+                    .willReturn(like(jsonResponse(response)));
+                {{#../bodyParams}}
+                {{#primitive}}
+                {{^collection}}
+                builder.withRequestBody(equalTo({{name}}.toString()));
+                {{/collection}}
+                {{#collection}}
+                builder.withRequestBody(equalToJson(Json.write({{name}}), true, true));
+                {{/collection}}
+                {{/primitive}}
+                {{^primitive}}
+                builder.withRequestBody(equalToJson(Json.write({{name}}), true, true));
+                {{/primitive}}
+                {{/../bodyParams}}
+                return builder.build();
             }
 
             public void mock() {

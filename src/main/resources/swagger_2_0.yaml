@@ -71,6 +71,10 @@ paths:
         - "TestTagPost"
       summary: "Post object"
       operationId: "postObject"
+      produces:
+        - application/json
+      consumes:
+        - application/json
       parameters:
         - name: "param1"
           in: "query"
@@ -94,7 +98,7 @@ paths:
 #          description: "Param 2"
 #          required: false
 #          schema:
-#            $ref: "#/definitions/BodyParam"
+#            $ref: "#/definitions/ListBody"
 #        - name: "primitiveList"
 #          in: "body"
 #          description: "Param 3"
@@ -110,7 +114,7 @@ paths:
 #          schema:
 #            type: array
 #            items:
-#              $ref: "#/definitions/Level1"
+#              $ref: "#/definitions/TestObject"
       responses:
         200:
           schema:
@@ -133,6 +137,18 @@ paths:
               type: string
           description: "List prim"
 definitions:
+  ListBody:
+    type: object
+    properties:
+      param1:
+        type: array
+        items:
+          $ref: "#/definitions/ListParam"
+  ListParam:
+    type: object
+    properties:
+      param2:
+        type: string
   BodyParam:
     type: object
     properties:
@@ -215,4 +231,4 @@ definitions:
       childObjectParam2:
         type: array
         items:
-          type: string
+          $ref: "#/definitions/TestObject"
