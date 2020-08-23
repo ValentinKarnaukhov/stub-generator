@@ -22,23 +22,23 @@ class WiremockTest {
     @Test
     public void simpleCallToMock() throws ApiException {
         TestTagPostMock.PostObject postMock = new TestTagPostMock.PostObject();
-        postMock
-                .inQueryParam1()
-                    .addNew("Q1")
-                    .exit()
-                .inQueryParam2("Q2")
-                .inBody("TEST")
-                .code200()
-                    .inRespParam1("R1")
-                    .inRespParam2()
-                        .addNew("R2")
-                        .addNew("R3")
-                        .exit()
-                    .inRespParam3_Inner1("R4")
-                    .inRespParam4()
-                        .addNew()
-                        .exit()
-                    .mock();
+//        postMock
+//                .inQueryParam1()
+//                    .addNew("Q1")
+//                    .exit()
+//                .inQueryParam2("Q2")
+//                .inBody("TEST")
+//                .code200()
+//                    .inRespParam1("R1")
+//                    .inRespParam2()
+//                        .addNew("R2")
+//                        .addNew("R3")
+//                        .exit()
+//                    .inRespParam3_Inner1("R4")
+//                    .inRespParam4()
+//                        .addNew()
+//                        .exit()
+//                    .mock();
 
 
 

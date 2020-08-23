@@ -19,13 +19,15 @@ import static io.swagger.codegen.v3.generators.DefaultCodegenConfig.camelize;
 public class ModelResolver {
 
     private final Map<String, CodegenModel> allModels;
-    private ResolverConf conf;
-    private int maxDepth = 6;
+    private final ResolverConf conf;
+    private final int maxDepth;
+
     @Getter
     private final Set<ObjectTemplate> collections = new HashSet<>();
 
-    public ModelResolver(Map<String, CodegenModel> allModels, ResolverConf conf) {
+    public ModelResolver(Map<String, CodegenModel> allModels, int maxDepth, ResolverConf conf) {
         this.allModels = allModels;
+        this.maxDepth = maxDepth;
         this.conf = conf;
     }
 
@@ -114,7 +116,7 @@ public class ModelResolver {
         Node node = modelToNode(model, null, null, 0);
         List<Field> fields = new ArrayList<>();
         parseNode(node, fields);
-        //TODO solve infinity recursion
+        //TODO add infinity recursion exit condition
         Consumer<ObjectTemplate> afterToObj = obj -> {
             if (this.allModels.containsKey(obj.getBaseType())) {
                 obj.setFields(modelToFields(this.allModels.get(obj.getBaseType())));
@@ -180,16 +182,23 @@ public class ModelResolver {
         }
 
         if (sourceModel != null) {
-            Map<String, Node> parameters = sourceModel.getAllVars().stream()
-                    .filter(p -> p.getComplexType() == null || p.getIsListContainer() || depth == maxDepth)
-                    .collect(Collectors.groupingBy(CodegenProperty::getBaseName, Collectors.mapping(
-                            p -> propertyToNode(p, sourceProperty, node, depth), Collectors.reducing(null, (a, b) -> b))));
-            node.setParameters(parameters);
-            Map<String, Node> models = sourceModel.getAllVars().stream()
-                    .filter(p -> p.getComplexType() != null && depth < maxDepth)
-                    .collect(Collectors.groupingBy(CodegenProperty::getBaseName, Collectors.mapping(
-                            p -> propertyToNode(p, sourceProperty, node, depth), Collectors.reducing(null, (a, b) -> b))));
-            node.setModels(models);
+            if (depth + 1 < maxDepth) {
+                Map<String, Node> parameters = sourceModel.getAllVars().stream()
+                        .filter(p -> p.getComplexType() == null || p.getIsListContainer())
+                        .collect(Collectors.groupingBy(CodegenProperty::getBaseName, Collectors.mapping(
+                                p -> propertyToNode(p, sourceProperty, node, depth), Collectors.reducing(null, (a, b) -> b))));
+                node.setParameters(parameters);
+                Map<String, Node> models = sourceModel.getAllVars().stream()
+                        .filter(p -> p.getComplexType() != null)
+                        .collect(Collectors.groupingBy(CodegenProperty::getBaseName, Collectors.mapping(
+                                p -> propertyToNode(p, sourceProperty, node, depth), Collectors.reducing(null, (a, b) -> b))));
+                node.setModels(models);
+            } else if (maxDepth != 0) {
+                Map<String, Node> parameters = sourceModel.getAllVars().stream()
+                        .collect(Collectors.groupingBy(CodegenProperty::getBaseName, Collectors.mapping(
+                                p -> propertyToNode(p, sourceProperty, node, depth), Collectors.reducing(null, (a, b) -> b))));
+                node.setParameters(parameters);
+            }
         }
 
         return node;
@@ -203,8 +212,10 @@ public class ModelResolver {
         } else {
             node.setDepth(depth + 1);
             node.setSourceProperty(sourceProperty);
-            node.getWay().addAll(parentNode.getWay());
-            node.getWay().add(parentProperty);
+            node.getWay().addAll(parentNode.getWay().stream().filter(Objects::nonNull).collect(Collectors.toList()));
+            if (parentProperty != null) {
+                node.getWay().add(parentProperty);
+            }
         }
 
         return node;

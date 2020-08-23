@@ -33,7 +33,7 @@ public class Main {
         wiremockGenerator.setGeneratorPropertyDefault("explode", "true");
 
         wiremockGenerator.opts(input);
-        wiremockGenerator.setGeneratorPropertyDefault("maxDepth", "2");
+        wiremockGenerator.setGeneratorPropertyDefault("maxDepth", "0");
 //        wiremockGenerator.setGeneratorPropertyDefault("delegateObject", "com.github.valentinkarnaukhov.stubgenerator.TestMock");
         wiremockGenerator.generate();
     }
