@@ -114,19 +114,25 @@ public class ModelResolver {
 
     private List<Field> modelToFields(CodegenModel model) {
         Node node = modelToNode(model, null, null, 0);
-        List<Field> fields = new ArrayList<>();
-        parseNode(node, fields);
+        List<Field> fields = null;
+
         //TODO add infinity recursion exit condition
         Consumer<ObjectTemplate> afterToObj = obj -> {
             if (this.allModels.containsKey(obj.getBaseType())) {
                 obj.setFields(modelToFields(this.allModels.get(obj.getBaseType())));
             }
         };
-        this.collections.addAll(fields.stream()
-                .filter(Field::isCollection)
-                .map(Field::toObjectTemplate)
-                .peek(afterToObj)
-                .collect(Collectors.toList()));
+
+        if (!node.getModels().isEmpty() || !node.getParameters().isEmpty()) {
+            fields = new ArrayList<>();
+            parseNode(node, fields);
+            this.collections.addAll(fields.stream()
+                    .filter(Field::isCollection)
+                    .map(Field::toObjectTemplate)
+                    .peek(afterToObj)
+                    .collect(Collectors.toList()));
+        }
+
         return fields;
     }
 

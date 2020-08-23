@@ -24,19 +24,20 @@
                 <version>3.0.21</version>
                 <executions>
                     <execution>
-                        <id>generate-models</id>
+                        <id>generate-query-params-client</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/swagger_2_0.yaml</inputSpec>
+                            <inputSpec>${project.basedir}/src/test/resources/query_params_swagger.yaml</inputSpec>
                             <language>java</language>
                             <library>jersey2</library>
-                            <generateApis>true</generateApis>
                             <generateApiTests>false</generateApiTests>
                             <generateModelTests>false</generateModelTests>
                             <generateApiDocumentation>false</generateApiDocumentation>
+                            <modelPackage>com.github.valentinkarnaukhov.stubgenerator.model</modelPackage>
+                            <apiPackage>com.github.valentinkarnaukhov.stubgenerator.api</apiPackage>
                             <configOptions>
                                 <dateLibrary>java8-localdatetime</dateLibrary>
                             </configOptions>
@@ -44,8 +45,29 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.3</version>
+                <executions>
+                    <execution>
+                        <id>build-test-environment</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <mainClass>com.github.valentinkarnaukhov.stubgenerator.Main</mainClass>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.1</version>
+            </plugin>
         </plugins>
-
     </build>
 
     <dependencies>

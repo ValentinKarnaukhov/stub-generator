@@ -94,6 +94,12 @@ public class {{tag}} {
         }
         {{/collection}}
         {{/fields}}
+        {{^fields}}
+        public {{operationId}} {{prefix}}({{{baseType}}} {{name}}) {
+            this.{{name}} = {{name}};
+            return this;
+        }
+        {{/fields}}
         {{/collection}}
         {{/primitive}}
         {{/bodyParams}}
@@ -158,13 +164,16 @@ public class {{tag}} {
             {{/fields}}
             {{/collection}}
             {{/primitive}}
-            {{/response}}
 
             public StubMapping buildStub() {
-                MappingBuilder builder = {{httpMethod}}(urlPattern)
+                MappingBuilder builder = {{../httpMethod}}(urlPattern)
                     .withQueryParams(queryParams)
-                    .willReturn(like(jsonResponse(response)));
-                {{#../bodyParams}}
+                {{#primitive}}
+                {{^collection}}.willReturn(aResponse().withBody(response).withHeader("content-type", "*/*"));{{/collection}}
+                {{#collection}}.willReturn(like(jsonResponse(response)));{{/collection}}
+                {{/primitive}}
+                {{^primitive}}.willReturn(like(jsonResponse(response)));{{/primitive}}
+                {{#../../bodyParams}}
                 {{#primitive}}
                 {{^collection}}
                 builder.withRequestBody(equalTo({{name}}.toString()));
@@ -176,9 +185,13 @@ public class {{tag}} {
                 {{^primitive}}
                 builder.withRequestBody(equalToJson(Json.write({{name}}), true, true));
                 {{/primitive}}
-                {{/../bodyParams}}
+                {{/../../bodyParams}}
                 return builder.build();
             }
+
+            {{/response}}
+
+
 
             public void mock() {
                 {{#importPackages.delegateObject}}

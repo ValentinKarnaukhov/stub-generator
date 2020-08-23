@@ -12,21 +12,19 @@ public class Main {
 
 
     public static void main(String[] args) {
-        OpenAPI openAPI = new OpenAPIV3Parser().read(inputSpec);
-        System.out.println("###############");
-
-        InlineModelResolver resolver = new InlineModelResolver(true, true);
-        resolver.flatten(openAPI);
-
         CodegenConfigurator codegenConfigurator = new CodegenConfigurator();
 
         codegenConfigurator.setModelPackage("com.github.valentinkarnaukhov.stubgenerator.model");
         codegenConfigurator.setLang("java");
-        codegenConfigurator.setInputSpec("src/main/resources/swagger_2_0.yaml");
+        codegenConfigurator.setInputSpec("src/test/resources/query_params_swagger.yaml");
         codegenConfigurator.setOutputDir("target/generated-sources/swagger");
         codegenConfigurator.setTemplateDir("src/main/resources");
 
         ClientOptInput input = codegenConfigurator.toClientOptInput();
+
+        OpenAPI openAPI = new OpenAPIV3Parser().read(codegenConfigurator.getInputSpec());
+        InlineModelResolver resolver = new InlineModelResolver(true, true);
+        resolver.flatten(openAPI);
         input.setOpenAPI(openAPI);
 
         WiremockGenerator wiremockGenerator = new WiremockGenerator();
