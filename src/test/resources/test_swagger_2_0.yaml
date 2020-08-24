@@ -1,0 +1,176 @@
+---
+swagger: "2.0"
+info:
+  description: "Swagger file for query params parsing test"
+  version: "1.0.0"
+  title: "Query params test"
+host: "localhost:8080"
+tags:
+  - name: "QueryParams"
+schemes:
+  - "http"
+paths:
+  /get/v1/object:
+    get:
+      tags:
+        - "QueryParamsGet"
+      summary: "Get object by params"
+      operationId: "getObjectByParams"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "stingParam"
+          in: "query"
+          description: "String param"
+          required: false
+          type: string
+        - name: "integerParam"
+          in: "query"
+          description: "Integer param"
+          required: false
+          type: integer
+        - name: "longParam"
+          in: "query"
+          description: "Long param"
+          required: false
+          type: integer
+          format: int64
+        - name: "boolParam"
+          in: "query"
+          description: "Boolean param"
+          required: false
+          type: boolean
+        - name: "floatParam"
+          in: "query"
+          description: "Float param"
+          required: false
+          type: number
+          format: float
+        - name: "doubleParam"
+          in: "query"
+          description: "Double param"
+          required: false
+          type: number
+          format: double
+        - name: "enumParam"
+          in: "query"
+          description: "Enum param"
+          required: false
+          type: string
+          enum:
+            - EV1
+            - EV2
+      responses:
+        200:
+          schema:
+            type: string
+          description: "Ok"
+  /post/v1/primitive:
+    post:
+      tags:
+        - "BodyParamsPost"
+      summary: "Post object"
+      operationId: "postObjectPrimitive"
+      produces:
+        - "application/json"
+      consumes:
+        - "application/json"
+      parameters:
+        - name: "primitiveParam"
+          in: body
+          description: "Primitive string body"
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          schema:
+            type: string
+          description: "Ok"
+  /post/v1/composite:
+    post:
+      tags:
+        - "BodyParamsPost"
+      summary: "Post object"
+      operationId: "postObjectComposite"
+      produces:
+        - "application/json"
+      consumes:
+        - "application/json"
+      parameters:
+        - name: "compositeParam"
+          in: body
+          description: "Primitive string body"
+          schema:
+            $ref: "#/definitions/CompositeBodyParam"
+      responses:
+        200:
+          schema:
+            type: string
+          description: "Ok"
+  /post/v1/primitiveList:
+    post:
+      tags:
+        - "BodyParamsPost"
+      summary: "Post object"
+      operationId: "postObjectPrimitiveList"
+      produces:
+        - "application/json"
+      consumes:
+        - "application/json"
+      parameters:
+        - name: "primitiveListParam"
+          in: body
+          description: "Primitive string list body"
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        200:
+          schema:
+            type: string
+          description: "Ok"
+  /post/v1/compositeList:
+    post:
+      tags:
+        - "BodyParamsPost"
+      summary: "Post object"
+      operationId: "postObjectCompositeList"
+      produces:
+        - "application/json"
+      consumes:
+        - "application/json"
+      parameters:
+        - name: "compositeListParam"
+          in: body
+          description: "Composite string list body"
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/CompositeBodyParam"
+      responses:
+        200:
+          schema:
+            type: string
+          description: "Ok"
+definitions:
+  CompositeBodyParam:
+    type: object
+    properties:
+      primitive:
+        type: string
+      composite:
+        $ref: "#/definitions/CompositeFieldParam"
+      primitiveList:
+        type: array
+        items:
+          type: string
+      compositeList:
+        type: array
+        items:
+          $ref: "#/definitions/CompositeFieldParam"
+  CompositeFieldParam:
+    properties:
+      innerField:
+        type: string

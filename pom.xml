@@ -24,13 +24,13 @@
                 <version>3.0.21</version>
                 <executions>
                     <execution>
-                        <id>generate-query-params-client</id>
-                        <phase>generate-sources</phase>
+                        <id>generate-test-client</id>
+                        <phase>generate-resources</phase>
                         <goals>
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/test/resources/query_params_swagger.yaml</inputSpec>
+                            <inputSpec>${project.basedir}/src/test/resources/test_swagger_2_0.yaml</inputSpec>
                             <language>java</language>
                             <library>jersey2</library>
                             <generateApiTests>false</generateApiTests>
@@ -52,7 +52,7 @@
                 <executions>
                     <execution>
                         <id>build-test-environment</id>
-                        <phase>generate-test-resources</phase>
+                        <phase>process-classes</phase>
                         <goals>
                             <goal>java</goal>
                         </goals>
@@ -61,6 +61,24 @@
                 <configuration>
                     <mainClass>com.github.valentinkarnaukhov.stubgenerator.Main</mainClass>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>add-generated-mocks</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>add-test-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-sources/swagger/</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

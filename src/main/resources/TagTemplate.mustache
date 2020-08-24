@@ -256,9 +256,10 @@ public class {{tag}} {
 
             {{#fields}}
             {{#collection}}
-            public {{{baseType}}}Builder<{{{../baseType}}}Builder> {{compositeName}}(){
+            public {{{baseType}}}Builder<{{{../baseType}}}Builder<E>> {{compositeName}}(){
                 {{{type}}} collection = {{{value}}};
-                return new {{{baseType}}}Builder<{{{../baseType}}}Builder>(this, collection);
+                this.value{{wayToParent}}.{{setter}}(collection);
+                return new {{{baseType}}}Builder<{{{../baseType}}}Builder<E>>(this, collection);
             }
             {{/collection}}
             {{^collection}}
