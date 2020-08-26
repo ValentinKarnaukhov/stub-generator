@@ -30,6 +30,7 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
     private Boolean generateStub = null;
     private Boolean explode = null;
     private Integer maxDepth = null;
+    private Boolean useTags = null;
     private final Map<String, String> generatorPropertyDefaults = new HashMap<>();
     private final Map<String, Object> importPackages = new HashMap<>();
     private Path supportTemplatesFolder;
@@ -89,6 +90,10 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
             this.explode = Boolean.valueOf(generatorPropertyDefaults.get("explode"));
         }
 
+        if(generatorPropertyDefaults.containsKey("useTags")) {
+            this.useTags = Boolean.valueOf(generatorPropertyDefaults.get("useTags"));
+        }
+
         customOrDefault();
 
         importPackages.put("supportPackage", supportPackage);
@@ -123,6 +128,10 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
 
         if (explode == null) {
             explode = false;
+        }
+
+        if(useTags == null){
+            useTags = false;
         }
     }
 

@@ -154,6 +154,39 @@ paths:
           schema:
             type: string
           description: "Ok"
+  /get/v1/response:
+    get:
+      tags:
+        - "QueryParamsGetResponse"
+      summary: "Get request with response"
+      operationId: "getWithResponse"
+      parameters:
+        - name: "stingParam"
+          in: "query"
+          description: "String param"
+          required: false
+          type: string
+      responses:
+        200:
+          schema:
+            type: string
+          description: "primitive"
+        201:
+          schema:
+            type: array
+            items:
+              type: string
+          description: "primitiveList"
+        202:
+          schema:
+            $ref: "#/definitions/CompositeBodyParam"
+          description: "composite"
+        203:
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/CompositeBodyParam"
+          description: "compositeList"
 definitions:
   CompositeBodyParam:
     type: object

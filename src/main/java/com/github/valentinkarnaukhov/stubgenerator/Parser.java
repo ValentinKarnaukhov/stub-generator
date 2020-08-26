@@ -46,12 +46,12 @@ public class Parser {
                         generator.getConfig().fromOperation(pathItem, method.name(), operation, openAPI.getComponents().getSchemas(), openAPI);
                 PathTemplate pathTemplate = operationToPath(codegenOperation);
 
-                pathTemplates.computeIfPresent(operation.getTags().iterator().next(), (k, v) -> {
+                pathTemplates.computeIfPresent(getGroupIdentifier(codegenOperation, operation), (k, v) -> {
                     v.add(pathTemplate);
                     return v;
                 });
 
-                pathTemplates.computeIfAbsent(operation.getTags().iterator().next(), k -> {
+                pathTemplates.computeIfAbsent(getGroupIdentifier(codegenOperation, operation), k -> {
                     List<PathTemplate> toAdd = new ArrayList<>();
                     toAdd.add(pathTemplate);
                     return toAdd;
@@ -63,6 +63,14 @@ public class Parser {
         pathTemplates.forEach((k, v) -> tagTemplates.add(new TagTemplate(k + "Mock", v)));
 
         return tagTemplates;
+    }
+
+    private String getGroupIdentifier(CodegenOperation cgOperation, Operation operation) {
+        if (generator.getUseTags() && !operation.getTags().isEmpty()) {
+            return StringUtils.capitalize(operation.getTags().iterator().next());
+        } else {
+            return StringUtils.capitalize(cgOperation.getPath().split("/")[1]);
+        }
     }
 
     private PathTemplate operationToPath(CodegenOperation oper) {

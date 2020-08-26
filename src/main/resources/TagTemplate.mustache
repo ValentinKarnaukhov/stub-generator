@@ -169,10 +169,10 @@ public class {{tag}} {
                 MappingBuilder builder = {{../httpMethod}}(urlPattern)
                     .withQueryParams(queryParams)
                 {{#primitive}}
-                {{^collection}}.willReturn(aResponse().withBody(response).withHeader("content-type", "*/*"));{{/collection}}
-                {{#collection}}.willReturn(like(jsonResponse(response)));{{/collection}}
+                {{^collection}}.willReturn(aResponse().withBody(response).withHeader("content-type", "*/*").withStatus({{../code}}));{{/collection}}
+                {{#collection}}.willReturn(like(jsonResponse(response)).withStatus({{../code}}));{{/collection}}
                 {{/primitive}}
-                {{^primitive}}.willReturn(like(jsonResponse(response)));{{/primitive}}
+                {{^primitive}}.willReturn(like(jsonResponse(response)).withStatus({{../code}}));{{/primitive}}
                 {{#../../bodyParams}}
                 {{#primitive}}
                 {{^collection}}
@@ -189,6 +189,27 @@ public class {{tag}} {
                 return builder.build();
             }
 
+            {{/response}}
+            {{^response}}
+            public StubMapping buildStub() {
+                MappingBuilder builder = {{../httpMethod}}(urlPattern)
+                    .withQueryParams(queryParams)
+                    .willReturn(aResponse().withBody(response).withHeader("content-type", "*/*").withStatus({{../code}}));
+                {{#../../bodyParams}}
+                {{#primitive}}
+                {{^collection}}
+                builder.withRequestBody(equalTo({{name}}.toString()));
+                {{/collection}}
+                {{#collection}}
+                builder.withRequestBody(equalToJson(Json.write({{name}}), true, true));
+                {{/collection}}
+                {{/primitive}}
+                {{^primitive}}
+                builder.withRequestBody(equalToJson(Json.write({{name}}), true, true));
+                {{/primitive}}
+                {{/../../bodyParams}}
+                return builder.build();
+            }
             {{/response}}
 
 

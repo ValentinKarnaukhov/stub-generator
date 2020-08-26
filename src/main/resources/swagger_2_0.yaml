@@ -67,8 +67,6 @@ paths:
     #            $ref: "#/definitions/TestObject"
     #          description: "Created"
     put:
-      tags:
-        - "TestTagPost"
       summary: "Post object"
       operationId: "postObject"
       produces:
