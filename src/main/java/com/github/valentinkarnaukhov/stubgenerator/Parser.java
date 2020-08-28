@@ -27,9 +27,9 @@ public class Parser {
     }
 
     public List<TagTemplate> parse() {
-        this.queryParamResolver = new ModelResolver(this.generator.getAllModels(), this.generator.getMaxDepth(), ResolverConfFactory.getForQuery());
-        this.bodyParamResolver = new ModelResolver(this.generator.getAllModels(), this.generator.getMaxDepth(), ResolverConfFactory.getForBody());
-        this.responseResolver = new ModelResolver(this.generator.getAllModels(), this.generator.getMaxDepth(), ResolverConfFactory.getForResponse());
+        this.queryParamResolver = new ModelResolver(this.generator.getAllModels(), this.generator.getMaxDepth(), ResolverConfFactory.getForQuery(this.generator));
+        this.bodyParamResolver = new ModelResolver(this.generator.getAllModels(), this.generator.getMaxDepth(), ResolverConfFactory.getForBody(this.generator));
+        this.responseResolver = new ModelResolver(this.generator.getAllModels(), this.generator.getMaxDepth(), ResolverConfFactory.getForResponse(this.generator));
 
         OpenAPI openAPI = generator.getOpenAPI();
 

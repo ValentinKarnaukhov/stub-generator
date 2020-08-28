@@ -1,5 +1,6 @@
 package com.github.valentinkarnaukhov.stubgenerator.resolver;
 
+import com.github.valentinkarnaukhov.stubgenerator.WiremockGenerator;
 import io.swagger.codegen.v3.CodegenProperty;
 
 import java.util.function.Function;
@@ -8,9 +9,9 @@ import java.util.stream.Stream;
 
 public class ResolverConfFactory {
 
-    public static ResolverConf getForQuery() {
+    public static ResolverConf getForQuery(WiremockGenerator generator) {
         ResolverConf conf = ResolverConf.builder()
-                .compNamePrefix("inQuery")
+                .compNamePrefix(generator.getPrefixMap().getOrDefault("query", "inQuery"))
                 .compNameDelimiter("_")
                 .compNameSuffix("")
                 .build();
@@ -22,15 +23,15 @@ public class ResolverConfFactory {
         return conf;
     }
 
-    public static ResolverConf getForResponse() {
-        ResolverConf conf = getForBody();
-        conf.setCompNamePrefix("inResp");
+    public static ResolverConf getForResponse(WiremockGenerator generator) {
+        ResolverConf conf = getForBody(generator);
+        conf.setCompNamePrefix(generator.getPrefixMap().getOrDefault("response", "inResp"));
         return conf;
     }
 
-    public static ResolverConf getForBody() {
+    public static ResolverConf getForBody(WiremockGenerator generator) {
         ResolverConf conf = ResolverConf.builder()
-                .compNamePrefix("inBody")
+                .compNamePrefix(generator.getPrefixMap().getOrDefault("body", "inBody"))
                 .compNameDelimiter("_")
                 .compNameSuffix("")
                 .wayToParentDelimiter("().")
@@ -46,7 +47,7 @@ public class ResolverConfFactory {
                     String res = n.getWay().stream()
                             .map(CodegenProperty::getGetter)
                             .collect(Collectors.joining(conf.getWayToParentDelimiter(), conf.getWayToParentPrefix(), conf.getWayToParentSuffix()));
-                    return res.equals(".()") ? "" : res;
+                    return res.equals(conf.getWayToParentPrefix() + conf.getWayToParentSuffix()) ? "" : res;
                 };
         Function<ModelResolver.Node, String> parentSetterFunction =
                 n -> {
@@ -54,20 +55,13 @@ public class ResolverConfFactory {
                             .limit(n.getWay().isEmpty() ? 0 : n.getWay().size() - 1)
                             .map(CodegenProperty::getGetter)
                             .collect(Collectors.joining(conf.getWayToParentDelimiter(), conf.getWayToParentPrefix(), conf.getWayToParentSuffix()));
-                    res = res.equals(".()") ? "" : res;
+                    res = res.equals(conf.getWayToParentPrefix() + conf.getWayToParentSuffix()) ? "" : res;
                     return n.getWay().isEmpty() ? res : res + conf.getWayToParentPrefix() + n.getWay().get(n.getWay().size() - 1).getSetter();
                 };
-        Function<ModelResolver.Node, String> jsonPathFunction =
-                n -> {
-                    String res = n.getWay().stream()
-                            .map(CodegenProperty::getName)
-                            .collect(Collectors.joining(".","$.",""));
-                    return res.equals(".()") ? "" : res;
-                };
+
         conf.setCompositeNameFunction(compositeNameFunction);
         conf.setWayToParentFunction(wayToParentFunction);
         conf.setParentSetterFunction(parentSetterFunction);
-        conf.setJsonPathFunction(jsonPathFunction);
         return conf;
     }
 }

@@ -144,7 +144,7 @@ public class ModelResolver {
             field.setCompositeName(this.conf.getCompositeNameFunction().apply(parameter));
             field.setWayToParent(this.conf.getWayToParentFunction().apply(parameter));
             field.setParentSetter(this.conf.getParentSetterFunction().apply(parameter));
-            field.setJsonPath(this.conf.getJsonPathFunction().apply(parameter));
+
             CodegenProperty lastInWay = parameter.getWay().isEmpty() ? null : parameter.getWay().get(parameter.getWay().size() - 1);
             field.setParentType(lastInWay != null ? lastInWay.getBaseType() : null);
 

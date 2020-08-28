@@ -34,6 +34,7 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
     private final Map<String, String> generatorPropertyDefaults = new HashMap<>();
     private final Map<String, Object> importPackages = new HashMap<>();
     private Path supportTemplatesFolder;
+    private final Map<String, String> prefixMap = new HashMap<>();
 
     @Override
     public List<File> generate() {
