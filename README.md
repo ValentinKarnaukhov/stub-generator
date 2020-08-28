@@ -1,2 +1,2 @@
-# swagger-mock-generator
+# stub-generator
 Library to generate mocks based on OpenAPI description
