@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.valentinkarnaukhov</groupId>
-    <artifactId>swagger-mock-generator</artifactId>
+    <artifactId>stub-generator</artifactId>
     <version>1.0-SNAPSHOT</version>
     <description>Library to generate mocks based on OpenAPI description</description>
     <build>
