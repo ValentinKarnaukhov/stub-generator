@@ -6,6 +6,7 @@ import io.swagger.codegen.v3.*;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.Schema;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.io.File;
@@ -34,7 +35,7 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
     private final Map<String, String> generatorPropertyDefaults = new HashMap<>();
     private final Map<String, Object> importPackages = new HashMap<>();
     private Path supportTemplatesFolder;
-    private final Map<String, String> prefixMap = new HashMap<>();
+    @Setter private Map<String, String> prefixMap = new HashMap<>();
 
     @Override
     public List<File> generate() {
@@ -120,7 +121,7 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
         }
 
         if (supportPackage == null) {
-            supportPackage = "com.github.valentinkarnaukhov.stubgenerator.support";
+            supportPackage = stubPackage + ".support";
         }
 
         if (maxDepth == null) {
