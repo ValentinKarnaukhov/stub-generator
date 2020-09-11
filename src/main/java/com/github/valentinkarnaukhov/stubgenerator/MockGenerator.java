@@ -1,40 +1,28 @@
 package com.github.valentinkarnaukhov.stubgenerator;
 
-import io.swagger.codegen.v3.ClientOptInput;
-import io.swagger.codegen.v3.config.CodegenConfigurator;
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.parser.OpenAPIV3Parser;
-import io.swagger.v3.parser.util.InlineModelResolver;
+import com.github.valentinkarnaukhov.stubgenerator.model.CodegenConfiguration;
+import com.github.valentinkarnaukhov.stubgenerator.model.GeneratorProperties;
 
 public class MockGenerator {
 
     public static void main(String[] args) {
-        CodegenConfigurator codegenConfigurator = new CodegenConfigurator();
+        GeneratorExecutor executor = new GeneratorExecutor();
+        CodegenConfiguration configuration = new CodegenConfiguration();
+        GeneratorProperties properties = configuration.getGeneratorProperties();
 
-        codegenConfigurator.setModelPackage("com.github.valentinkarnaukhov.stubgenerator.model");
-        codegenConfigurator.setLang("java");
-        codegenConfigurator.setInputSpec("src/test/resources/test_swagger_2_0.yaml");
-        codegenConfigurator.setOutputDir("target/generated-sources/swagger");
-        codegenConfigurator.setTemplateDir("src/main/resources");
+        configuration.setModelPackage("com.github.valentinkarnaukhov.stubgenerator.model");
+        configuration.setLang("java");
+        configuration.setInputSpec("src/test/resources/test_swagger_2_0.yaml");
+        configuration.setOutputDir("target/generated-sources/swagger");
+        configuration.setTemplateDir("src/main/resources");
+        properties.setExplode(true);
+        properties.setUseTags(true);
+        properties.getPrefixMap().put("query", "inQuery");
+        properties.getPrefixMap().put("body", "inBody");
+        properties.getPrefixMap().put("response", "inResp");
+        properties.setMaxDepth(1);
 
-        ClientOptInput input = codegenConfigurator.toClientOptInput();
-
-        OpenAPI openAPI = new OpenAPIV3Parser().read(codegenConfigurator.getInputSpec());
-        InlineModelResolver resolver = new InlineModelResolver(true, true);
-        resolver.flatten(openAPI);
-        input.setOpenAPI(openAPI);
-
-        WiremockGenerator wiremockGenerator = new WiremockGenerator();
-        wiremockGenerator.setGeneratorPropertyDefault("explode", "true");
-        wiremockGenerator.setGeneratorPropertyDefault("useTags", "true");
-        
-        wiremockGenerator.getPrefixMap().put("query", "inQuery");
-        wiremockGenerator.getPrefixMap().put("body", "inBody");
-        wiremockGenerator.getPrefixMap().put("response", "inResp");
-
-        wiremockGenerator.opts(input);
-        wiremockGenerator.setGeneratorPropertyDefault("maxDepth", "1");
-        wiremockGenerator.generate();
+        executor.generate(configuration);
     }
 
 }

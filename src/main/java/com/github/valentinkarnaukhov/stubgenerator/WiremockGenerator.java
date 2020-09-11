@@ -35,7 +35,8 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
     private final Map<String, String> generatorPropertyDefaults = new HashMap<>();
     private final Map<String, Object> importPackages = new HashMap<>();
     private Path supportTemplatesFolder;
-    @Setter private Map<String, String> prefixMap = new HashMap<>();
+    @Setter
+    private Map<String, String> prefixMap = new HashMap<>();
 
     @Override
     public List<File> generate() {
@@ -92,7 +93,7 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
             this.explode = Boolean.valueOf(generatorPropertyDefaults.get("explode"));
         }
 
-        if(generatorPropertyDefaults.containsKey("useTags")) {
+        if (generatorPropertyDefaults.containsKey("useTags")) {
             this.useTags = Boolean.valueOf(generatorPropertyDefaults.get("useTags"));
         }
 
@@ -132,7 +133,7 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
             explode = false;
         }
 
-        if(useTags == null){
+        if (useTags == null) {
             useTags = false;
         }
     }
