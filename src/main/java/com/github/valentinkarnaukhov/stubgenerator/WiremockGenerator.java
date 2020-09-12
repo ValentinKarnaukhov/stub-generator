@@ -9,8 +9,9 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.ObjectUtils;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.net.URI;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -37,10 +38,11 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
     private Path supportTemplatesFolder;
     @Setter
     private Map<String, String> prefixMap = new HashMap<>();
+    private final TemplateWriter templateWriter = new TemplateWriter();
 
     @Override
     public List<File> generate() {
-        this.supportTemplatesFolder = Paths.get(this.config.customTemplateDir() + File.separator + "support");
+        this.supportTemplatesFolder = Paths.get(getClass().getResource("").getFile());
         configureGeneratorProperties();
         generateModels(this.allModels);
         generateSupportFiles();
@@ -142,8 +144,10 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
         try {
             String outputFilename = config.getOutputDir() + File.separator + "src/main/java" + File.separator +
                     stubPackage.replace('.', '/') + File.separator + tagTemplate.getTag() + ".java";
-            Map<String, Object> templateData = this.objectMapper.convertValue(tagTemplate, Map.class);
-            processTemplateToFile(templateData, "TagTemplate.mustache", outputFilename);
+            String adjustedOutputFilename = outputFilename.replaceAll("//", "/").replace('/', File.separatorChar);
+            String templateFile = "tag.mustache";
+            String rendered = templateWriter.processTemplate(templateFile, tagTemplate);
+            writeToFile(adjustedOutputFilename, rendered);
         } catch (Exception e) {
             throw new RuntimeException("Can't process data to file");
         }
@@ -151,17 +155,12 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
 
     private void generateSupportFiles() {
         try {
-            List<String> templates = Files.walk(this.supportTemplatesFolder)
-                    .filter(Files::isRegularFile)
-                    .map(Path::getFileName)
-                    .map(Object::toString)
-                    .collect(Collectors.toList());
+            List<String> templates = Arrays.asList("CollectionBuilder.mustache", "PrimitiveCollectionBuilder.mustache");
             for (String templateName : templates) {
                 String outputFilename = config.getOutputDir() + File.separator + "src/main/java" + File.separator +
                         supportPackage.replace('.', '/') + File.separator + templateName.split("\\.")[0] + ".java";
                 String adjustedOutputFilename = outputFilename.replaceAll("//", "/").replace('/', File.separatorChar);
-                String templateFile = this.supportTemplatesFolder + File.separator + templateName;
-                String rendered = config.getTemplateEngine().getRendered(templateFile, importPackages);
+                String rendered = templateWriter.processTemplate(templateName, importPackages);
                 writeToFile(adjustedOutputFilename, rendered);
             }
         } catch (Exception e) {
@@ -341,5 +340,26 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
         String rendered = config.getTemplateEngine().getRendered(templateFile, templateData);
         writeToFile(adjustedOutputFilename, rendered);
         return new File(adjustedOutputFilename);
+    }
+
+    private List<String> getResourceFiles(String path) {
+        List<String> filenames = new ArrayList<>();
+
+        try (InputStream in = getResourceAsStream(path);
+             BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
+            String resource;
+
+            while ((resource = br.readLine()) != null) {
+                filenames.add(resource);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Can't find directory: " + path);
+        }
+
+        return filenames;
+    }
+
+    private InputStream getResourceAsStream(String resource) {
+        return WiremockGenerator.class.getResourceAsStream(resource);
     }
 }

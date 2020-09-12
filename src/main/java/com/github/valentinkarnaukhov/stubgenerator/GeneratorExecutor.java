@@ -21,8 +21,6 @@ public class GeneratorExecutor {
         codegenConfigurator.setInputSpec(configuration.getInputSpec());
         codegenConfigurator.setOutputDir(configuration.getOutputDir());
 
-        codegenConfigurator.setTemplateDir("/Users/valentin/IdeaProjects/stub-generator/src/main/resources");
-
         ClientOptInput input = codegenConfigurator.toClientOptInput();
 
         OpenAPI openAPI = new OpenAPIV3Parser().read(codegenConfigurator.getInputSpec());
@@ -31,18 +29,18 @@ public class GeneratorExecutor {
         input.setOpenAPI(openAPI);
 
         WiremockGenerator wiremockGenerator = new WiremockGenerator();
-        wiremockGenerator.setGeneratorPropertyDefault("explode", nullOrToString(properties.getExplode()));
-        wiremockGenerator.setGeneratorPropertyDefault("useTags", nullOrToString(properties.getUseTags()));
-
-        wiremockGenerator.setPrefixMap(properties.getPrefixMap());
-        wiremockGenerator.setGeneratorPropertyDefault("maxDepth", nullOrToString(properties.getMaxDepth()));
+        setPropertyIfNotNull("explode", properties.getExplode(), wiremockGenerator);
+        setPropertyIfNotNull("useTags", properties.getUseTags(), wiremockGenerator);
+        setPropertyIfNotNull("maxDepth", properties.getMaxDepth(), wiremockGenerator);
 
         wiremockGenerator.opts(input);
         wiremockGenerator.generate();
     }
 
-    private String nullOrToString(Object object) {
-        return Objects.nonNull(object) ? object.toString() : null;
+    private void setPropertyIfNotNull(String key, Object object, WiremockGenerator generator) {
+        if (Objects.nonNull(object)) {
+            generator.setGeneratorPropertyDefault(key, object.toString());
+        }
     }
 
 }
