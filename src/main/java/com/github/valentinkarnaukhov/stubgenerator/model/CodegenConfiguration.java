@@ -11,10 +11,9 @@ public class CodegenConfiguration {
     private String lang;
     private String inputSpec;
     private String outputDir;
-    private String templateDir;
     private Boolean generateModels;
-    private Boolean generateStub = true;
     private String stubPackage;
+    private String supportPackage;
     private String delegateObject;
 
     private GeneratorProperties generatorProperties = new GeneratorProperties();

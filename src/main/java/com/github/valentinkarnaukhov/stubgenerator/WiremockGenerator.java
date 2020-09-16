@@ -1,59 +1,56 @@
 package com.github.valentinkarnaukhov.stubgenerator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.valentinkarnaukhov.stubgenerator.model.CodegenConfiguration;
 import com.github.valentinkarnaukhov.stubgenerator.model.TagTemplate;
 import io.swagger.codegen.v3.*;
+import io.swagger.codegen.v3.config.CodegenConfigurator;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.parser.OpenAPIV3Parser;
+import io.swagger.v3.parser.util.InlineModelResolver;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.io.*;
-import java.net.URI;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
+
+import static com.github.valentinkarnaukhov.stubgenerator.util.Util.validateNotNull;
 
 @Getter
 public class WiremockGenerator extends AbstractGenerator implements Generator {
 
     private ObjectMapper objectMapper;
-    private CodegenConfig config;
+
     private OpenAPI openAPI;
     private Parser parser;
     private Map<String, CodegenModel> allModels;
+    private final Map<String, String> generatorPropertyDefaults = new HashMap<>();
+    private final Map<String, Object> importPackages = new HashMap<>();
+
+    private final TemplateWriter templateWriter = new TemplateWriter();
+
+    private CodegenConfig config;
     private String stubPackage = null;
     private String supportPackage = null;
     private Boolean generateModels = null;
-    private Boolean generateStub = null;
     private Boolean explode = null;
     private Integer maxDepth = null;
     private Boolean useTags = null;
-    private final Map<String, String> generatorPropertyDefaults = new HashMap<>();
-    private final Map<String, Object> importPackages = new HashMap<>();
-    private Path supportTemplatesFolder;
     @Setter
     private Map<String, String> prefixMap = new HashMap<>();
-    private final TemplateWriter templateWriter = new TemplateWriter();
 
     @Override
     public List<File> generate() {
-        this.supportTemplatesFolder = Paths.get(getClass().getResource("").getFile());
-        configureGeneratorProperties();
+        validateGenerationContext();
+
+        importPackages.put("supportPackage", supportPackage);
+        importPackages.put("stubPackage", stubPackage);
+        importPackages.put("modelPackage", config.modelPackage());
+
         generateModels(this.allModels);
         generateSupportFiles();
-
-        if (!generateStub) {
-            return null;
-        }
-
-        if (!explode) {
-            maxDepth = 0;
-        }
 
         List<TagTemplate> templates = this.parser.parse();
         templates.stream()
@@ -62,82 +59,92 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
         return null;
     }
 
-    public void setGeneratorPropertyDefault(final String key, final String value) {
-        this.generatorPropertyDefaults.put(key, value);
-    }
-
     private void preProcessTemplate(TagTemplate tagTemplate) {
         tagTemplate.setImportPackages(this.importPackages);
     }
 
-    private void configureGeneratorProperties() {
-        if (generatorPropertyDefaults.containsKey("generateModels")) {
-            this.generateModels = Boolean.valueOf(generatorPropertyDefaults.get("generateModels"));
-        }
-
-        if (generatorPropertyDefaults.containsKey("generateStub")) {
-            this.generateStub = Boolean.valueOf(generatorPropertyDefaults.get("generateStub"));
-        }
-
-        if (generatorPropertyDefaults.containsKey("stubPackage")) {
-            this.stubPackage = generatorPropertyDefaults.get("stubPackage");
-        }
-
-        if (generatorPropertyDefaults.containsKey("supportPackage")) {
-            this.supportPackage = generatorPropertyDefaults.get("supportPackage");
-        }
-
-        if (generatorPropertyDefaults.containsKey("maxDepth")) {
-            this.maxDepth = Integer.valueOf(generatorPropertyDefaults.get("maxDepth"));
-        }
-
-        if (generatorPropertyDefaults.containsKey("explode")) {
-            this.explode = Boolean.valueOf(generatorPropertyDefaults.get("explode"));
-        }
-
-        if (generatorPropertyDefaults.containsKey("useTags")) {
-            this.useTags = Boolean.valueOf(generatorPropertyDefaults.get("useTags"));
-        }
-
-        customOrDefault();
-
-        importPackages.put("supportPackage", supportPackage);
-        importPackages.put("stubPackage", stubPackage);
-        importPackages.put("modelPackage", config.modelPackage());
-
-        if (generatorPropertyDefaults.containsKey("delegateObject")) {
-            importPackages.put("delegateObject", generatorPropertyDefaults.get("delegateObject"));
-        }
+    @Override
+    public Generator opts(ClientOptInput opts) {
+        this.openAPI = opts.getOpenAPI();
+        this.config = opts.getConfig();
+        this.parser = new Parser(this);
+        this.allModels = new HashMap<>();
+        this.config.processOpts();
+        this.objectMapper = new ObjectMapper();
+        return this;
     }
 
-    private void customOrDefault() {
-        if (generateModels == null) {
-            generateModels = true;
+    public Generator configure(CodegenConfiguration configuration) {
+        CodegenConfigurator codegenConfigurator = new CodegenConfigurator();
+
+        codegenConfigurator.setModelPackage(configuration.getModelPackage());
+        codegenConfigurator.setLang(configuration.getLang());
+        codegenConfigurator.setInputSpec(configuration.getInputSpec());
+        codegenConfigurator.setOutputDir(configuration.getOutputDir());
+        this.generateModels = configuration.getGenerateModels();
+        this.stubPackage = configuration.getStubPackage();
+        this.supportPackage = configuration.getSupportPackage();
+        this.maxDepth = configuration.getGeneratorProperties().getMaxDepth();
+        this.explode = configuration.getGeneratorProperties().getExplode();
+        this.useTags = configuration.getGeneratorProperties().getUseTags();
+
+        if (configuration.getModelPackage() == null) {
+            codegenConfigurator.setModelPackage("com.github.valentinkarnaukhov.stubgenerator.model");
         }
 
-        if (generateStub == null) {
-            generateStub = true;
+        if (configuration.getLang() == null) {
+            codegenConfigurator.setLang("java");
         }
 
-        if (stubPackage == null) {
-            stubPackage = "com.github.valentinkarnaukhov.stubgenerator.stub";
+        if (configuration.getInputSpec() == null) {
+            codegenConfigurator.setInputSpec(configuration.getInputSpec());
         }
 
-        if (supportPackage == null) {
-            supportPackage = stubPackage + ".support";
+        if (configuration.getOutputDir() == null) {
+            codegenConfigurator.setOutputDir(configuration.getOutputDir());
         }
 
-        if (maxDepth == null) {
-            maxDepth = 3;
+        if (configuration.getGenerateModels() == null) {
+            this.generateModels = true;
         }
 
-        if (explode == null) {
-            explode = false;
+        if (configuration.getStubPackage() == null) {
+            this.stubPackage = "com.github.valentinkarnaukhov.stubgenerator.stub";
         }
 
-        if (useTags == null) {
-            useTags = false;
+        if (configuration.getSupportPackage() == null) {
+            this.supportPackage = this.stubPackage + ".support";
         }
+
+        if (configuration.getGeneratorProperties().getMaxDepth() == null) {
+            this.maxDepth = 3;
+        }
+
+        if (configuration.getGeneratorProperties().getExplode() == null) {
+            this.explode = false;
+        }
+
+        if (configuration.getGeneratorProperties().getUseTags() == null) {
+            this.useTags = false;
+        }
+
+        if (configuration.getGeneratorProperties().getPrefixMap() == null) {
+            this.prefixMap = new HashMap<>();
+        }
+
+        if (!explode) {
+            maxDepth = 0;
+        }
+
+        ClientOptInput input = codegenConfigurator.toClientOptInput();
+        OpenAPI openAPI = new OpenAPIV3Parser().read(configuration.getInputSpec());
+        InlineModelResolver resolver = new InlineModelResolver(true, true);
+        resolver.flatten(openAPI);
+        input.setOpenAPI(openAPI);
+
+        this.opts(input);
+
+        return this;
     }
 
     private void processTemplate(TagTemplate tagTemplate) {
@@ -166,17 +173,6 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
         } catch (Exception e) {
             throw new RuntimeException("Can't process data to file");
         }
-    }
-
-    @Override
-    public Generator opts(ClientOptInput opts) {
-        this.openAPI = opts.getOpenAPI();
-        this.config = opts.getConfig();
-        this.parser = new Parser(this);
-        this.allModels = new HashMap<>();
-        this.config.processOpts();
-        this.objectMapper = new ObjectMapper();
-        return this;
     }
 
     private void generateModels(Map<String, CodegenModel> allModels) {
@@ -342,24 +338,16 @@ public class WiremockGenerator extends AbstractGenerator implements Generator {
         return new File(adjustedOutputFilename);
     }
 
-    private List<String> getResourceFiles(String path) {
-        List<String> filenames = new ArrayList<>();
-
-        try (InputStream in = getResourceAsStream(path);
-             BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
-            String resource;
-
-            while ((resource = br.readLine()) != null) {
-                filenames.add(resource);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Can't find directory: " + path);
-        }
-
-        return filenames;
-    }
-
-    private InputStream getResourceAsStream(String resource) {
-        return WiremockGenerator.class.getResourceAsStream(resource);
+    private void validateGenerationContext() {
+        validateNotNull(config.modelPackage());
+        validateNotNull(config.getInputSpec());
+        validateNotNull(config.outputFolder());
+        validateNotNull(stubPackage);
+        validateNotNull(supportPackage);
+        validateNotNull(generateModels);
+        validateNotNull(explode);
+        validateNotNull(maxDepth);
+        validateNotNull(useTags);
+        validateNotNull(prefixMap);
     }
 }
