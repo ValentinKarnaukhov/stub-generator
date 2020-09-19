@@ -8,12 +8,17 @@
     <artifactId>stub-generator</artifactId>
     <version>0.0.1</version>
     <packaging>jar</packaging>
+
+    <name>com.github.valentinkarnaukhov:stub-generator</name>
     <description>Library to generate mocks based on OpenAPI description</description>
+    <url>https://github.com/ValentinKarnaukhov/stub-generator</url>
 
     <developers>
         <developer>
             <name>Valentin Karnaukhov</name>
             <email>valentin.karnaukhovv@gmail.com</email>
+            <organization>Github</organization>
+            <url>https://github.com/ValentinKarnaukhov</url>
         </developer>
     </developers>
 
@@ -24,6 +29,24 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
+    <scm>
+        <connection>scm:git:https://github.com/ValentinKarnaukhov/stub-generator.git</connection>
+        <developerConnection>scm:git:ssh://github.com/ValentinKarnaukhov/stub-generator.git</developerConnection>
+        <url>https://github.com/ValentinKarnaukhov/stub-generator</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 
     <build>
         <plugins>
