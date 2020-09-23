@@ -11,23 +11,14 @@ public class TemplateWriter {
 
     public String processTemplate(String templateFile, Object data) {
         try {
-            templateFile = templateFile.replace(".mustache", StringUtils.EMPTY).replace("\\", "/");
-            final String templateDir = "";
             TemplateLoader templateLoader;
-            templateFile = resolveTemplateFile(templateDir, templateFile);
-            templateLoader = new ClassPathTemplateLoader("/" + templateDir, ".mustache");
+            templateFile = templateFile.replace(".mustache", StringUtils.EMPTY).replace("\\", "/");
+            templateLoader = new ClassPathTemplateLoader("/", ".mustache");
             final Handlebars handlebars = new Handlebars(templateLoader);
             return handlebars.compile(templateFile).apply(data);
         } catch (IOException e) {
             throw new RuntimeException("Template processing error");
         }
-    }
-
-    private String resolveTemplateFile(String templateDir, String templateFile) {
-        if (templateFile.startsWith(templateDir)) {
-            templateFile = StringUtils.replaceOnce(templateFile, templateDir, StringUtils.EMPTY);
-        }
-        return templateFile;
     }
 
 }
