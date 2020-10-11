@@ -1,14 +1,16 @@
 package com.github.valentinkarnaukhov.stubgenerator;
 
+import com.github.valentinkarnaukhov.stubgenerator.generator.Generator;
+import com.github.valentinkarnaukhov.stubgenerator.generator.WiremockStubGenerator;
 import com.github.valentinkarnaukhov.stubgenerator.model.CodegenConfiguration;
 
 public class GeneratorExecutor {
 
     public void generate(CodegenConfiguration configuration) {
-        WiremockGenerator wiremockGenerator = new WiremockGenerator();
+        Generator generator = new WiremockStubGenerator();
 
-        wiremockGenerator.configure(configuration);
-        wiremockGenerator.generate();
+        generator.configure(configuration);
+        generator.generate();
     }
 
 }

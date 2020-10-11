@@ -32,36 +32,7 @@ public class JavaSpecParser extends AbstractSpecParser implements SpecParser {
 
     @Override
     public List<TagTemplate> parse(OpenAPI spec) {
-        Paths paths = spec.getPaths();
 
-        Map<String, List<PathTemplate>> pathTemplates = new LinkedHashMap<>();
-        for (String pathItem : paths.keySet()) {
-
-            Map<PathItem.HttpMethod, Operation> operationMap = paths.get(pathItem).readOperationsMap();
-            for (PathItem.HttpMethod method : operationMap.keySet()) {
-                Operation operation = operationMap.get(method);
-
-                CodegenOperation codegenOperation =
-                        config.fromOperation(pathItem, method.name(), operation, spec.getComponents().getSchemas(), spec);
-                PathTemplate pathTemplate = operationToPath(codegenOperation);
-
-                pathTemplates.computeIfPresent(getGroupIdentifier(codegenOperation, operation), (k, v) -> {
-                    v.add(pathTemplate);
-                    return v;
-                });
-
-                pathTemplates.computeIfAbsent(getGroupIdentifier(codegenOperation, operation), k -> {
-                    List<PathTemplate> toAdd = new ArrayList<>();
-                    toAdd.add(pathTemplate);
-                    return toAdd;
-                });
-            }
-        }
-
-        List<TagTemplate> tagTemplates = new ArrayList<>();
-        pathTemplates.forEach((k, v) -> tagTemplates.add(new TagTemplate(k + "Mock", v)));
-
-        return tagTemplates;
     }
 
     private String getGroupIdentifier(CodegenOperation cgOperation, Operation operation) {
