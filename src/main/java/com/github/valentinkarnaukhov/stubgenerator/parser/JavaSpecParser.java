@@ -1,14 +1,16 @@
 package com.github.valentinkarnaukhov.stubgenerator.parser;
 
-import com.github.valentinkarnaukhov.stubgenerator.model.GeneratorProperties;
-import com.github.valentinkarnaukhov.stubgenerator.model.PathTemplate;
-import com.github.valentinkarnaukhov.stubgenerator.model.TagTemplate;
+import com.github.valentinkarnaukhov.stubgenerator.model.*;
+import com.github.valentinkarnaukhov.stubgenerator.model.adapter.CodegenParameter;
+import com.github.valentinkarnaukhov.stubgenerator.resolver.v2.ModelResolver;
 import io.swagger.codegen.v3.CodegenConfig;
 import io.swagger.codegen.v3.CodegenOperation;
+import io.swagger.codegen.v3.CodegenResponse;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Paths;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -24,6 +26,13 @@ public class JavaSpecParser extends AbstractSpecParser implements SpecParser {
 
     private final CodegenConfig config;
     private final GeneratorProperties properties;
+
+    @Setter
+    private ModelResolver queryParamResolver;
+    @Setter
+    private ModelResolver bodyParamResolver;
+    @Setter
+    private ModelResolver responseResolver;
 
     private final Map<String, List<PathTemplate>> pathTemplates = new LinkedHashMap<>();
 
@@ -52,10 +61,59 @@ public class JavaSpecParser extends AbstractSpecParser implements SpecParser {
         return compileTagTemplates();
     }
 
-    //TODO implement it!!!
     private PathTemplate convertCodegenOperationToPathTemplate(CodegenOperation codegenOperation) {
-        return null;
+        PathTemplate pathTemplate = new PathTemplate();
+        pathTemplate.setOperationId(StringUtils.capitalize(codegenOperation.getOperationId()));
+        pathTemplate.setPath(codegenOperation.getPath());
+        pathTemplate.setHttpMethod(codegenOperation.getHttpMethod().toLowerCase());
+        pathTemplate.setResponses(new ArrayList<>());
+
+        List<ObjectTemplate> queryParams = extractQueryParams(codegenOperation);
+        pathTemplate.setQueryParams(queryParams);
+
+        List<ObjectTemplate> bodyParams = extractBodyParams(codegenOperation);
+        pathTemplate.setBodyParams(bodyParams);
+
+        List<ResponseTemplate> responseTemplates = extractResponses(codegenOperation);
+        pathTemplate.setResponses(responseTemplates);
+
+        return pathTemplate;
     }
+
+    private List<ObjectTemplate> extractQueryParams(CodegenOperation codegenOperation) {
+        return codegenOperation
+                .getQueryParams()
+                .stream()
+                .map(CodegenParameter::fromParameter)
+                .map(queryParamResolver::toObjectTemplate)
+                .collect(Collectors.toList());
+    }
+
+    private List<ObjectTemplate> extractBodyParams(CodegenOperation codegenOperation) {
+        return codegenOperation
+                .getBodyParams()
+                .stream()
+                .map(CodegenParameter::fromParameter)
+                .map(bodyParamResolver::toObjectTemplate)
+                .collect(Collectors.toList());
+    }
+
+    private List<ResponseTemplate> extractResponses(CodegenOperation codegenOperation) {
+        List<ResponseTemplate> responsesParams = new ArrayList<>();
+
+        for (CodegenResponse response : codegenOperation.getResponses()) {
+            CodegenParameter parameter = CodegenParameter.fromResponse(response);
+            ObjectTemplate responseBody = responseResolver.toObjectTemplate(parameter);
+
+            ResponseTemplate responseTemplate = new ResponseTemplate(responseBody);
+            responseTemplate.setCode(response.getCode());
+            responseTemplate.setDescription(response.getMessage());
+
+            responsesParams.add(responseTemplate);
+        }
+        return responsesParams;
+    }
+
 
     private void putToResult(String identifier, PathTemplate pathTemplate) {
         if (!pathTemplates.containsKey(identifier)) {
