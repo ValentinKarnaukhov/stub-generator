@@ -15,17 +15,14 @@ import java.util.Map;
  */
 public abstract class AbstractModelResolver {
 
-
-
-
     @Getter
     @Setter
     @NoArgsConstructor
     public static class Node {
         private CodegenParameter sourceModel;
         private CodegenParameter sourceProperty;
-        private Map<String, Node> parameters = new HashMap<>();
-        private Map<String, Node> models = new HashMap<>();
+        private Map<String, Node> primitiveFields = new HashMap<>();
+        private Map<String, Node> referenceFields = new HashMap<>();
         private List<CodegenParameter> way = new ArrayList<>();
         private int depth;
         private boolean visit;

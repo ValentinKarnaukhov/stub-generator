@@ -16,5 +16,6 @@ public class ResolverConf {
     private Function<ModelResolver.Node, String> compositeNameFunction;
     private Function<ModelResolver.Node, String> wayToParentFunction;
     private Function<ModelResolver.Node, String> parentSetterFunction;
+    private int maxDepth;
 
 }

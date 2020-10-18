@@ -1,10 +1,9 @@
 package com.github.valentinkarnaukhov.stubgenerator.resolver.v2;
 
-import com.github.valentinkarnaukhov.stubgenerator.model.Field;
 import com.github.valentinkarnaukhov.stubgenerator.model.ObjectTemplate;
 import com.github.valentinkarnaukhov.stubgenerator.model.adapter.CodegenParameter;
+import com.github.valentinkarnaukhov.stubgenerator.resolver.ResolverConf;
 
-import java.util.List;
 import java.util.Map;
 
 import static io.swagger.codegen.v3.generators.DefaultCodegenConfig.camelize;
@@ -14,10 +13,12 @@ import static io.swagger.codegen.v3.generators.DefaultCodegenConfig.camelize;
  */
 public class JavaModelResolver extends AbstractModelResolver implements ModelResolver {
 
-    private Map<String, CodegenParameter> allModels;
+    private final Map<String, CodegenParameter> allModels;
+    private final ResolverConf conf;
 
-    public JavaModelResolver(Map<String, CodegenParameter> allModels) {
+    public JavaModelResolver(Map<String, CodegenParameter> allModels, ResolverConf conf) {
         this.allModels = allModels;
+        this.conf = conf;
     }
 
     @Override
@@ -25,6 +26,7 @@ public class JavaModelResolver extends AbstractModelResolver implements ModelRes
         ObjectTemplate objectTemplate = new ObjectTemplate();
         objectTemplate.setName(parameter.getName());
         objectTemplate.setCamelizedName(camelize(parameter.getName()));
+        objectTemplate.setPrefix(this.conf.getCompNamePrefix());
         if (!this.allModels.containsKey(parameter.getDataType()) && !parameter.isCollection()) {
             //primitive
             objectTemplate.setPrimitive(true);
@@ -43,8 +45,8 @@ public class JavaModelResolver extends AbstractModelResolver implements ModelRes
                     //obj list
                     objectTemplate.setPrimitive(false);
                     objectTemplate.setCollection(true);
-                    objectTemplate.setFields(extractFields(this.allModels.get(parameter.getBaseType())));
-                    objectTemplate.setBaseType(parameter.getBaseType());
+                    objectTemplate.setFields(modelToFields(this.allModels.get(parameter.getBaseType())));
+                    objectTemplate.setBaseType(parameter.getDataType());
                     objectTemplate.setType(parameter.getDataType());
                 }
                 objectTemplate.setValue(parameter.getValue());
@@ -52,22 +54,12 @@ public class JavaModelResolver extends AbstractModelResolver implements ModelRes
                 //obj
                 objectTemplate.setPrimitive(false);
                 objectTemplate.setCollection(false);
-                objectTemplate.setFields(extractFields(this.allModels.get(parameter.getBaseType())));
+                objectTemplate.setFields(modelToFields(this.allModels.get(parameter.getBaseType())));
                 objectTemplate.setBaseType(parameter.getBaseType());
                 objectTemplate.setType(parameter.getBaseType());
             }
         }
-
         return objectTemplate;
     }
 
-    @Override
-    public List<Field> extractFields(CodegenParameter parameter) {
-        return null;
-    }
-
-    @Override
-    public void getCollections() {
-
-    }
 }
