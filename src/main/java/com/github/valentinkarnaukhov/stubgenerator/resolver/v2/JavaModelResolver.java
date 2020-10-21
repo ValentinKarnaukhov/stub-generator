@@ -15,10 +15,12 @@ public class JavaModelResolver extends AbstractModelResolver implements ModelRes
 
     private final Map<String, CodegenParameter> allModels;
     private final ResolverConf conf;
+    private final FieldExtractor extractor;
 
     public JavaModelResolver(Map<String, CodegenParameter> allModels, ResolverConf conf) {
         this.allModels = allModels;
         this.conf = conf;
+        this.extractor = new FieldExtractor(conf.getMaxDepth(), allModels);
     }
 
     @Override
@@ -45,7 +47,7 @@ public class JavaModelResolver extends AbstractModelResolver implements ModelRes
                     //obj list
                     objectTemplate.setPrimitive(false);
                     objectTemplate.setCollection(true);
-                    objectTemplate.setFields(modelToFields(this.allModels.get(parameter.getBaseType())));
+                    objectTemplate.setFields(extractor.extractFields(this.allModels.get(parameter.getBaseType())));
                     objectTemplate.setBaseType(parameter.getDataType());
                     objectTemplate.setType(parameter.getDataType());
                 }
@@ -54,7 +56,7 @@ public class JavaModelResolver extends AbstractModelResolver implements ModelRes
                 //obj
                 objectTemplate.setPrimitive(false);
                 objectTemplate.setCollection(false);
-                objectTemplate.setFields(modelToFields(this.allModels.get(parameter.getBaseType())));
+                objectTemplate.setFields(extractor.extractFields(this.allModels.get(parameter.getBaseType())));
                 objectTemplate.setBaseType(parameter.getBaseType());
                 objectTemplate.setType(parameter.getBaseType());
             }

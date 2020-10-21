@@ -17,7 +17,6 @@ public abstract class AbstractModelResolver {
 
     @Getter
     @Setter
-    @NoArgsConstructor
     public static class Node {
         private CodegenParameter sourceModel;
         private CodegenParameter sourceProperty;
@@ -25,7 +24,11 @@ public abstract class AbstractModelResolver {
         private Map<String, Node> referenceFields = new HashMap<>();
         private List<CodegenParameter> way = new ArrayList<>();
         private int depth;
-        private boolean visit;
+        private boolean visit = false;
+
+        public Node(int depth) {
+            this.depth = depth;
+        }
     }
 
 

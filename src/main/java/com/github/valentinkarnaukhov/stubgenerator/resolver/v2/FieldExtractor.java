@@ -25,17 +25,29 @@ public class FieldExtractor {
     }
 
     public List<Field> extractFields(CodegenParameter parameter) {
-
+        return null;
     }
 
-    private AbstractModelResolver.Node parameterToNode(CodegenParameter codegenParameter) {
-        AbstractModelResolver.Node node = new AbstractModelResolver.Node();
+    private AbstractModelResolver.Node parameterToNode(CodegenParameter codegenParameter, int depth) {
+        AbstractModelResolver.Node node = new AbstractModelResolver.Node(depth);
 
-        Map<String, CodegenParameter> primitiveFields = codegenParameter
+        Function<CodegenParameter, AbstractModelResolver.Node> valueMapper = p -> parameterToNode(p, depth + 1);
+
+        Map<String, AbstractModelResolver.Node> primitiveFields = codegenParameter
                 .getAllVars()
                 .stream()
                 .filter(CodegenParameter::isPrimitiveType)
-                .collect(Collectors.toMap(CodegenParameter::getName, Function.identity()));
+                .collect(Collectors.toMap(CodegenParameter::getName, valueMapper));
+        node.setPrimitiveFields(primitiveFields);
+
+        Map<String, AbstractModelResolver.Node> referenceFields = codegenParameter
+                .getAllVars()
+                .stream()
+                .filter(p -> !p.isPrimitiveType())
+                .collect(Collectors.toMap(CodegenParameter::getName, valueMapper));
+        node.setReferenceFields(referenceFields);
+
+        return node;
     }
 
 
