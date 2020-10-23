@@ -1,7 +1,9 @@
 package com.github.valentinkarnaukhov.stubgenerator.generator;
 
 import com.github.valentinkarnaukhov.stubgenerator.model.CodegenConfiguration;
+import com.github.valentinkarnaukhov.stubgenerator.model.GeneratorProperties;
 import com.github.valentinkarnaukhov.stubgenerator.model.TagTemplate;
+import com.github.valentinkarnaukhov.stubgenerator.parser.JavaSpecParser;
 import com.github.valentinkarnaukhov.stubgenerator.parser.SpecParser;
 import io.swagger.codegen.v3.AbstractGenerator;
 import io.swagger.codegen.v3.ClientOptInput;
@@ -34,6 +36,7 @@ public class WiremockStubGenerator extends AbstractGenerator implements Generato
     private Boolean useTags = null;
     @Setter
     private Map<String, String> prefixMap = new HashMap<>();
+    private GeneratorProperties properties;
 
     @Override
     public void configure(CodegenConfiguration configuration) {
@@ -49,6 +52,7 @@ public class WiremockStubGenerator extends AbstractGenerator implements Generato
         this.maxDepth = configuration.getGeneratorProperties().getMaxDepth();
         this.explode = configuration.getGeneratorProperties().getExplode();
         this.useTags = configuration.getGeneratorProperties().getUseTags();
+        this.properties = configuration.getGeneratorProperties();
 
         if (configuration.getModelPackage() == null) {
             codegenConfigurator.setModelPackage("com.github.valentinkarnaukhov.stubgenerator.model");
@@ -103,8 +107,8 @@ public class WiremockStubGenerator extends AbstractGenerator implements Generato
         InlineModelResolver resolver = new InlineModelResolver(true, true);
         resolver.flatten(openAPI);
         input.setOpenAPI(openAPI);
-        this.validate();
         this.opts(input);
+        this.validate();
     }
 
     @Override
@@ -117,7 +121,7 @@ public class WiremockStubGenerator extends AbstractGenerator implements Generato
 
     @Override
     public List<File> generate() {
-        SpecParser parser = null;
+        SpecParser parser = new JavaSpecParser(config, properties);
         List<TagTemplate> templateData = parser.parse(this.openAPI);
 
         return null;

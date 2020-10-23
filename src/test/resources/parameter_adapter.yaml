@@ -1,0 +1,20 @@
+---
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "Query params test"
+host: "localhost:8080"
+schemes:
+  - "http"
+paths:
+  /string:
+    get:
+      parameters:
+        - name: "stingParam"
+          in: "query"
+          description: "String param"
+          required: false
+          type: string
+      responses:
+        200:
+          description: "Ok"
