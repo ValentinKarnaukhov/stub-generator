@@ -7,14 +7,29 @@ host: "localhost:8080"
 schemes:
   - "http"
 paths:
-  /string:
+  /codegenParameterTest:
     get:
       parameters:
-        - name: "stingParam"
+        - name: "stringParam"
           in: "query"
           description: "String param"
           required: false
           type: string
+        - name: "stringListParam"
+          in: "query"
+          description: "String list param"
+          required: false
+          type: array
+          items:
+            type: string
       responses:
         200:
-          description: "Ok"
+          description: "primitive"
+          schema:
+            type: string
+        400:
+          description: "list"
+          schema:
+            type: array
+            items:
+              type: string
