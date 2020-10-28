@@ -1,15 +1,16 @@
 package com.github.valentinkarnaukhov.stubgenerator.model.adapter;
 
-import io.swagger.codegen.v3.CodegenConfig;
-import io.swagger.codegen.v3.CodegenOperation;
-import io.swagger.codegen.v3.CodegenResponse;
-import io.swagger.codegen.v3.generators.openapi.OpenAPIGenerator;
+import com.github.valentinkarnaukhov.stubgenerator.parser.ModelParser;
+import io.swagger.codegen.v3.*;
+import io.swagger.codegen.v3.config.CodegenConfigurator;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.util.InlineModelResolver;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,13 +20,24 @@ import static org.junit.jupiter.api.Assertions.*;
 class CodegenParameterTest {
 
     private static OpenAPI openAPI;
-    private CodegenConfig config = new OpenAPIGenerator();
+    private static CodegenConfig config;
+    private static ClientOptInput clientOptInput;
+    private static Map<String, CodegenModel> allModels;
 
     @BeforeAll
     static void setUp() {
-        openAPI = new OpenAPIV3Parser().read("parameter_adapter.yaml");
+        CodegenConfigurator codegenConfigurator = new CodegenConfigurator();
+        codegenConfigurator.setLang("java");
+        codegenConfigurator.setInputSpec("parameter_adapter.yaml");
+
+        openAPI = new OpenAPIV3Parser().read(codegenConfigurator.getInputSpec());
         InlineModelResolver resolver = new InlineModelResolver(true, true);
         resolver.flatten(openAPI);
+
+        clientOptInput = codegenConfigurator.toClientOptInput();
+        clientOptInput.setOpenAPI(openAPI);
+        config = clientOptInput.getConfig();
+        allModels = new ModelParser(clientOptInput).extractModels();
     }
 
     @Test
@@ -75,7 +87,7 @@ class CodegenParameterTest {
     }
 
     @Test
-    void fromResponse() {
+    void fromNonCollectionResponse() {
         Operation operation = openAPI.getPaths().get("/codegenParameterTest").getGet();
         CodegenOperation cgOperation = config.fromOperation("/codegenParameterTest", "GET", operation, openAPI.getComponents().getSchemas(), openAPI);
 
@@ -87,6 +99,25 @@ class CodegenParameterTest {
         assertNull(target.getName());
         assertEquals("String", target.getBaseType());
         assertEquals("String", target.getType());
+        assertNull(target.getSetter());
+        assertNull(target.getGetter());
+        assertNull(target.getValue());
+        assertNull(target.getAllVars());
+    }
+
+    @Test
+    void fromCollectionResponse() {
+        Operation operation = openAPI.getPaths().get("/codegenParameterTest").getGet();
+        CodegenOperation cgOperation = config.fromOperation("/codegenParameterTest", "GET", operation, openAPI.getComponents().getSchemas(), openAPI);
+
+        CodegenResponse source = cgOperation.getResponses().get(1);
+        CodegenParameter target = CodegenParameter.fromResponse(source);
+
+        assertTrue(target.isCollection());
+        assertFalse(target.isPrimitiveType());
+        assertNull(target.getName());
+        assertEquals("String", target.getBaseType());
+        assertEquals("List", target.getType());
         assertNull(target.getSetter());
         assertNull(target.getGetter());
         assertNull(target.getValue());
