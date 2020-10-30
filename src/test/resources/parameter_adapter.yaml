@@ -7,29 +7,55 @@ host: "localhost:8080"
 schemes:
   - "http"
 paths:
-  /codegenParameterTest:
+  /nonCollectionResponse:
+    get:
+      responses:
+        200:
+          description: "primitive"
+          schema:
+            type: string
+  /collectionResponse:
+    get:
+      responses:
+        200:
+          description: "list"
+          schema:
+            type: array
+            items:
+              type: string
+  /nonCollectionParameter:
     get:
       parameters:
-        - name: "stringParam"
-          in: "query"
-          description: "String param"
+        - name: "nonCollectionParameter"
+          in: query
           required: false
           type: string
-        - name: "stringListParam"
-          in: "query"
-          description: "String list param"
+      responses:
+        200:
+          description: "ok"
+  /collectionParameter:
+    get:
+      parameters:
+        - name: "collectionParameter"
+          in: query
           required: false
           type: array
           items:
             type: string
       responses:
         200:
-          description: "primitive"
+          description: "ok"
+  /nonCollectionInlineModel:
+    post:
+      parameters:
+        - in: body
+          required: false
+          name: "nonCollectionInlineModel"
           schema:
-            type: string
-        400:
-          description: "list"
-          schema:
-            type: array
-            items:
-              type: string
+            type: object
+            properties:
+              field:
+                type: string
+      responses:
+        200:
+          description: "ok"

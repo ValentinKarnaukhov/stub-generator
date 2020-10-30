@@ -41,7 +41,19 @@ class CodegenParameterTest {
     }
 
     @Test
-    void fromModel() {
+    void fromNonCollectionInlineModel() {
+        CodegenModel source = allModels.get("Body");
+        CodegenParameter target = CodegenParameter.fromModel(source);
+
+        assertFalse(target.isCollection());
+        assertFalse(target.isPrimitiveType());
+        assertEquals("Body", target.getName());
+        assertEquals("Body", target.getBaseType());
+        assertEquals("Body", target.getType());
+        assertNull(target.getSetter());
+        assertNull(target.getGetter());
+        assertNull(target.getValue());
+        assertNull(target.getAllVars());
     }
 
     @Test
@@ -50,15 +62,15 @@ class CodegenParameterTest {
 
     @Test
     void fromNonCollectionParameter() {
-        Operation operation = openAPI.getPaths().get("/codegenParameterTest").getGet();
-        CodegenOperation cgOperation = config.fromOperation("/codegenParameterTest", "GET", operation, openAPI.getComponents().getSchemas(), openAPI);
+        Operation operation = openAPI.getPaths().get("/nonCollectionParameter").getGet();
+        CodegenOperation cgOperation = config.fromOperation("/nonCollectionParameter", "GET", operation, openAPI.getComponents().getSchemas(), openAPI);
 
         io.swagger.codegen.v3.CodegenParameter source = cgOperation.getQueryParams().get(0);
         CodegenParameter target = CodegenParameter.fromParameter(source);
 
         assertFalse(target.isCollection());
         assertTrue(target.isPrimitiveType());
-        assertEquals("stringParam", target.getName());
+        assertEquals("nonCollectionParameter", target.getName());
         assertEquals("String", target.getBaseType());
         assertEquals("String", target.getType());
         assertNull(target.getSetter());
@@ -69,17 +81,17 @@ class CodegenParameterTest {
 
     @Test
     void fromCollectionParameter() {
-        Operation operation = openAPI.getPaths().get("/codegenParameterTest").getGet();
-        CodegenOperation cgOperation = config.fromOperation("/codegenParameterTest", "GET", operation, openAPI.getComponents().getSchemas(), openAPI);
+        Operation operation = openAPI.getPaths().get("/collectionParameter").getGet();
+        CodegenOperation cgOperation = config.fromOperation("/collectionParameter", "GET", operation, openAPI.getComponents().getSchemas(), openAPI);
 
-        io.swagger.codegen.v3.CodegenParameter source = cgOperation.getQueryParams().get(1);
+        io.swagger.codegen.v3.CodegenParameter source = cgOperation.getQueryParams().get(0);
         CodegenParameter target = CodegenParameter.fromParameter(source);
 
         assertTrue(target.isCollection());
         assertFalse(target.isPrimitiveType());
-        assertEquals("stringListParam", target.getName());
+        assertEquals("collectionParameter", target.getName());
         assertEquals("String", target.getBaseType());
-        assertEquals("List", target.getType());
+        assertEquals("List<String>", target.getType());
         assertNull(target.getSetter());
         assertNull(target.getGetter());
         assertNull(target.getValue());
@@ -88,8 +100,8 @@ class CodegenParameterTest {
 
     @Test
     void fromNonCollectionResponse() {
-        Operation operation = openAPI.getPaths().get("/codegenParameterTest").getGet();
-        CodegenOperation cgOperation = config.fromOperation("/codegenParameterTest", "GET", operation, openAPI.getComponents().getSchemas(), openAPI);
+        Operation operation = openAPI.getPaths().get("/nonCollectionResponse").getGet();
+        CodegenOperation cgOperation = config.fromOperation("/nonCollectionResponse", "GET", operation, openAPI.getComponents().getSchemas(), openAPI);
 
         CodegenResponse source = cgOperation.getResponses().get(0);
         CodegenParameter target = CodegenParameter.fromResponse(source);
@@ -107,17 +119,17 @@ class CodegenParameterTest {
 
     @Test
     void fromCollectionResponse() {
-        Operation operation = openAPI.getPaths().get("/codegenParameterTest").getGet();
-        CodegenOperation cgOperation = config.fromOperation("/codegenParameterTest", "GET", operation, openAPI.getComponents().getSchemas(), openAPI);
+        Operation operation = openAPI.getPaths().get("/collectionResponse").getGet();
+        CodegenOperation cgOperation = config.fromOperation("/collectionResponse", "GET", operation, openAPI.getComponents().getSchemas(), openAPI);
 
-        CodegenResponse source = cgOperation.getResponses().get(1);
+        CodegenResponse source = cgOperation.getResponses().get(0);
         CodegenParameter target = CodegenParameter.fromResponse(source);
 
         assertTrue(target.isCollection());
         assertFalse(target.isPrimitiveType());
         assertNull(target.getName());
         assertEquals("String", target.getBaseType());
-        assertEquals("List", target.getType());
+        assertEquals("List<String>", target.getType());
         assertNull(target.getSetter());
         assertNull(target.getGetter());
         assertNull(target.getValue());
