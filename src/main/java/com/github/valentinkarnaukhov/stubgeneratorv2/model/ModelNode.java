@@ -1,5 +1,6 @@
 package com.github.valentinkarnaukhov.stubgeneratorv2.model;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -7,8 +8,17 @@ import java.util.Map;
  */
 public class ModelNode implements Node {
 
-    private EmbeddedAttribute value;
+    private final Item source;
     private Map<String, Node> children;
+
+    public ModelNode(Item source) {
+        this.source = source;
+    }
+
+    public ModelNode(Item source, Map<String, Node> children) {
+        this.source = source;
+        this.children = children;
+    }
 
     @Override
     public Map<String, Node> getChildren() {
@@ -16,37 +26,42 @@ public class ModelNode implements Node {
     }
 
     @Override
+    public String getType() {
+        return source.getType();
+    }
+
+    @Override
     public String getName() {
-        return value.getName();
-    }
-
-    @Override
-    public boolean isCollection() {
-        return value.isCollection();
-    }
-
-    @Override
-    public String getItemType() {
-        return value.getItemType();
+        return source.getName();
     }
 
     @Override
     public String getSetter() {
-        return value.getSetter();
+        return source.getSetter();
     }
 
     @Override
     public String getGetter() {
-        return value.getGetter();
-    }
-
-    @Override
-    public String getType() {
-        return value.getType();
+        return source.getGetter();
     }
 
     @Override
     public boolean isPrimitive() {
-        return value.isPrimitive();
+        return source.isPrimitive();
+    }
+
+    @Override
+    public boolean isCollection() {
+        return source.isCollection();
+    }
+
+    @Override
+    public String getCollectionType() {
+        return source.getCollectionType();
+    }
+
+    @Override
+    public List<Item> getFields() {
+        return source.getFields();
     }
 }

@@ -1,0 +1,61 @@
+---
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "Query params test"
+host: "localhost:8080"
+schemes:
+  - "http"
+paths:
+  /nonCollectionResponse:
+    get:
+      responses:
+        200:
+          description: "primitive"
+          schema:
+            type: string
+  /collectionResponse:
+    get:
+      responses:
+        200:
+          description: "list"
+          schema:
+            type: array
+            items:
+              type: string
+  /nonCollectionParameter:
+    get:
+      parameters:
+        - name: "nonCollectionParameter"
+          in: query
+          required: false
+          type: string
+      responses:
+        200:
+          description: "ok"
+  /collectionParameter:
+    get:
+      parameters:
+        - name: "collectionParameter"
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+      responses:
+        200:
+          description: "ok"
+  /nonCollectionInlineModel:
+    post:
+      parameters:
+        - in: body
+          required: false
+          name: "nonCollectionInlineModel"
+          schema:
+            type: object
+            properties:
+              field:
+                type: string
+      responses:
+        200:
+          description: "ok"
