@@ -4,10 +4,12 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
 @EqualsAndHashCode(of = "type")
-public class Field {
+public class Field implements Serializable {
 
     private boolean isPrimitive = true;
     private boolean isCollection = false;

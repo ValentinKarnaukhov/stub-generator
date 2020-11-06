@@ -1,51 +1,49 @@
 package com.github.valentinkarnaukhov.stubgeneratorv2.model.adapter;
 
 import com.github.valentinkarnaukhov.stubgeneratorv2.model.Item;
-import io.swagger.codegen.v3.CodegenModel;
+import io.swagger.codegen.v3.CodegenProperty;
 
 import java.util.List;
-import java.util.stream.Collectors;
-
 
 /**
  * @author Valentin Karnaukhov
  */
-public class CodegenModelAdapter extends CodegenModel implements Item {
+public class CodegenPropertyAdapter extends CodegenProperty implements Item {
 
-    private final CodegenModel codegenModel;
+    private final CodegenProperty codegenProperty;
 
-    public CodegenModelAdapter(CodegenModel codegenModel) {
-        this.codegenModel = codegenModel;
+    public CodegenPropertyAdapter(CodegenProperty codegenProperty) {
+        this.codegenProperty = codegenProperty;
     }
 
     @Override
     public String getType() {
-        return codegenModel.getDataType();
+        return codegenProperty.getDatatype();
     }
 
     @Override
     public String getName() {
-        return null;
+        return codegenProperty.getName();
     }
 
     @Override
     public String getSetter() {
-        return null;
+        return codegenProperty.getGetter();
     }
 
     @Override
     public String getGetter() {
-        return null;
+        return codegenProperty.getGetter();
     }
 
     @Override
     public boolean isPrimitive() {
-        return false;
+        return codegenProperty.getIsPrimitiveType();
     }
 
     @Override
     public boolean isCollection() {
-        return false;
+        return codegenProperty.getIsListContainer();
     }
 
     @Override
@@ -55,6 +53,6 @@ public class CodegenModelAdapter extends CodegenModel implements Item {
 
     @Override
     public List<Item> getFields() {
-        return codegenModel.getAllVars().stream().map(CodegenPropertyAdapter::new).collect(Collectors.toList());
+        return null;
     }
 }

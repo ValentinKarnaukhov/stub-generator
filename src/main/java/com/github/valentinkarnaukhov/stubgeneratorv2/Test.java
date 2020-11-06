@@ -1,7 +1,10 @@
 package com.github.valentinkarnaukhov.stubgeneratorv2;
 
+import com.github.valentinkarnaukhov.stubgenerator.model.Field;
 import com.github.valentinkarnaukhov.stubgeneratorv2.model.Item;
+import com.github.valentinkarnaukhov.stubgeneratorv2.model.Node;
 import com.github.valentinkarnaukhov.stubgeneratorv2.model.adapter.CodegenModelAdapter;
+import com.github.valentinkarnaukhov.stubgeneratorv2.parser.FieldExtractor;
 import com.github.valentinkarnaukhov.stubgeneratorv2.parser.ModelParser;
 import com.github.valentinkarnaukhov.stubgeneratorv2.parser.SpecParser;
 import io.swagger.codegen.v3.ClientOptInput;
@@ -13,6 +16,7 @@ import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.util.InlineModelResolver;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -45,8 +49,10 @@ public class Test {
         }
 
         ModelParser parser = new ModelParser(3, models);
-        Item source = models.get("Body");
-        parser.parse(source);
+        Item source = models.get("Level1");
+        Node node = parser.parse(source);
+        FieldExtractor extractor = new FieldExtractor(null);
+        List<Field> fieldList = extractor.extractFields(node);
         System.out.println("");
     }
 }

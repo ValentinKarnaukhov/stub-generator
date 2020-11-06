@@ -59,3 +59,30 @@ paths:
       responses:
         200:
           description: "ok"
+definitions:
+  Level1:
+    type: "object"
+    properties:
+      level1Param1:
+        type: "string"
+      level1Param2:
+        $ref: "#/definitions/Level2"
+  Level2:
+    type: "object"
+    properties:
+      level2Param1:
+        type: "string"
+      level2Param2:
+        $ref: "#/definitions/Level3"
+  Level3:
+    type: "object"
+    properties:
+      level3Param1:
+        type: "string"
+      level3Param2:
+        $ref: "#/definitions/Level4"
+  Level4:
+    type: "object"
+    properties:
+      level4Param1:
+        type: "string"
