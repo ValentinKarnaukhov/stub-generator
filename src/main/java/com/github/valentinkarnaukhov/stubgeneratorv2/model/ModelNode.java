@@ -1,7 +1,7 @@
 package com.github.valentinkarnaukhov.stubgeneratorv2.model;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Valentin Karnaukhov
@@ -9,19 +9,20 @@ import java.util.Map;
 public class ModelNode implements Node {
 
     private final Item source;
-    private Map<String, Node> children;
+    private final List<Node> children;
 
     public ModelNode(Item source) {
         this.source = source;
+        this.children = Collections.emptyList();
     }
 
-    public ModelNode(Item source, Map<String, Node> children) {
+    public ModelNode(Item source, List<Node> children) {
         this.source = source;
         this.children = children;
     }
 
     @Override
-    public Map<String, Node> getChildren() {
+    public List<Node> getChildren() {
         return children;
     }
 

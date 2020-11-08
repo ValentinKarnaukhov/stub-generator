@@ -4,7 +4,8 @@ import com.github.valentinkarnaukhov.stubgeneratorv2.model.Item;
 import com.github.valentinkarnaukhov.stubgeneratorv2.model.ModelNode;
 import com.github.valentinkarnaukhov.stubgeneratorv2.model.Node;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,14 +28,13 @@ public class ModelParser {
     private Node parse(Item model, int currentDepth) {
         if (model.isPrimitive() || currentDepth >= maxDepth) {
             return new ModelNode(model);
+        } else {
+            model = this.allModels.get(model.getType());
         }
-        Map<String, Node> children = new HashMap<>();
+        List<Node> children = new ArrayList<>();
         for (Item field : model.getFields()) {
-            if (!field.isPrimitive()) {
-                children.put(field.getName(), parse(this.allModels.get(field.getType()), currentDepth + 1));
-            } else {
-                children.put(field.getName(), parse(field, currentDepth + 1));
-            }
+            Node child = parse(this.allModels.get(field.getType()), currentDepth + 1);
+            children.add(child);
         }
         return new ModelNode(model, children);
     }

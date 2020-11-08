@@ -22,22 +22,37 @@ public class FieldExtractor {
     }
 
     public List<Field> extractFields(Node node) {
-        dfs(node.getChildren().values(), new Field());
+        deepFirstSearch(node.getChildren());
         return fields;
     }
 
-    public void dfs(Collection<Node> children, Field field) {
+    private void deepFirstSearch(Collection<Node> children) {
+        for (Node node : children) {
+            Field field = new Field();
+            field.setName(node.getName());
+            field.setGetter(node.getGetter());
+            field.setSetter(node.getSetter());
+            field.setType(node.getType());
+            field.setPrimitive(node.isPrimitive());
+            field.setCollection(node.isCollection());
+            if (node.isPrimitive()) {
+                fields.add(field);
+            } else {
+                deepFirstSearch(node.getChildren(), field);
+            }
+        }
+    }
+
+    private void deepFirstSearch(Collection<Node> children, Field parent) {
         for (Node child : children) {
-            Field newField = SerializationUtils.clone(field);
+            Field newField = SerializationUtils.clone(parent);
             newField.setSetter(newField.getSetter() + child.getSetter());
             newField.setGetter(newField.getSetter() + child.getGetter());
             newField.setName(newField.getName() + child.getName());
             if (child.isPrimitive()) {
                 fields.add(newField);
             } else {
-                if(child.getChildren()!=null){
-                    dfs(child.getChildren().values(), newField);
-                }
+                deepFirstSearch(child.getChildren(), newField);
             }
         }
     }
