@@ -27,8 +27,8 @@ public class ModelNode implements Node {
     }
 
     @Override
-    public String getType() {
-        return source.getType();
+    public String getClassName() {
+        return source.getClassName();
     }
 
     @Override
@@ -64,5 +64,10 @@ public class ModelNode implements Node {
     @Override
     public List<Item> getFields() {
         return source.getFields();
+    }
+
+    @Override
+    public String toString() {
+        return source.toString();
     }
 }

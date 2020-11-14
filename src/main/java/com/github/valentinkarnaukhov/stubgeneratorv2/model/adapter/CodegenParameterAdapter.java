@@ -1,49 +1,49 @@
 package com.github.valentinkarnaukhov.stubgeneratorv2.model.adapter;
 
 import com.github.valentinkarnaukhov.stubgeneratorv2.model.Item;
-import io.swagger.codegen.v3.CodegenProperty;
+import io.swagger.codegen.v3.CodegenParameter;
 
 import java.util.List;
 
 /**
  * @author Valentin Karnaukhov
  */
-public class CodegenPropertyAdapter extends CodegenProperty implements Item {
+public class CodegenParameterAdapter extends CodegenParameter implements Item {
 
-    private final CodegenProperty codegenProperty;
+    private final CodegenParameter codegenParameter;
 
-    public CodegenPropertyAdapter(CodegenProperty codegenProperty) {
-        this.codegenProperty = codegenProperty;
+    public CodegenParameterAdapter(CodegenParameter codegenParameter) {
+        this.codegenParameter = codegenParameter;
     }
 
     @Override
     public String getClassName() {
-        return codegenProperty.getDatatype();
+        return null;
     }
 
     @Override
     public String getName() {
-        return codegenProperty.getName();
+        return null;
     }
 
     @Override
     public String getSetter() {
-        return codegenProperty.getSetter();
+        return null;
     }
 
     @Override
     public String getGetter() {
-        return codegenProperty.getGetter();
+        return null;
     }
 
     @Override
     public boolean isPrimitive() {
-        return codegenProperty.getIsPrimitiveType();
+        return false;
     }
 
     @Override
     public boolean isCollection() {
-        return codegenProperty.getIsListContainer();
+        return false;
     }
 
     @Override
@@ -54,10 +54,5 @@ public class CodegenPropertyAdapter extends CodegenProperty implements Item {
     @Override
     public List<Item> getFields() {
         return null;
-    }
-
-    @Override
-    public String toString() {
-        return codegenProperty.toString();
     }
 }

@@ -13,48 +13,60 @@ import java.util.stream.Collectors;
 public class CodegenModelAdapter extends CodegenModel implements Item {
 
     private final CodegenModel codegenModel;
+    private final Item fieldInformation;
 
     public CodegenModelAdapter(CodegenModel codegenModel) {
         this.codegenModel = codegenModel;
+        this.fieldInformation = null;
+    }
+
+    public CodegenModelAdapter(CodegenModel codegenModel, Item fieldInformation) {
+        this.codegenModel = codegenModel;
+        this.fieldInformation = fieldInformation;
     }
 
     @Override
-    public String getType() {
-        return codegenModel.getDataType();
+    public String getClassName() {
+        return codegenModel.getClassname();
     }
 
     @Override
     public String getName() {
-        return null;
+        return fieldInformation.getName();
     }
 
     @Override
     public String getSetter() {
-        return null;
+        return fieldInformation.getSetter();
     }
 
     @Override
     public String getGetter() {
-        return null;
+        return fieldInformation.getGetter();
     }
 
     @Override
     public boolean isPrimitive() {
-        return false;
+        return codegenModel.getIsPrimitiveType();
     }
 
     @Override
     public boolean isCollection() {
-        return false;
+        return fieldInformation.isCollection();
     }
 
     @Override
     public String getCollectionType() {
-        return null;
+        return fieldInformation.getCollectionType();
     }
 
     @Override
     public List<Item> getFields() {
         return codegenModel.getAllVars().stream().map(CodegenPropertyAdapter::new).collect(Collectors.toList());
+    }
+
+    @Override
+    public String toString() {
+        return codegenModel.toString();
     }
 }

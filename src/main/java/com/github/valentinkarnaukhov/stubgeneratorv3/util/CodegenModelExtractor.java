@@ -1,48 +1,25 @@
-package com.github.valentinkarnaukhov.stubgeneratorv2.parser;
+package com.github.valentinkarnaukhov.stubgeneratorv3.util;
 
-import com.github.valentinkarnaukhov.stubgenerator.model.GeneratorProperties;
-import io.swagger.codegen.v3.*;
+import io.swagger.codegen.v3.CodegenConfig;
+import io.swagger.codegen.v3.CodegenModel;
+import io.swagger.codegen.v3.ISchemaHandler;
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
 /**
  * @author Valentin Karnaukhov
  */
-public class SpecParser {
+public class CodegenModelExtractor {
 
     private final CodegenConfig config;
     private final OpenAPI openAPI;
-    private final GeneratorProperties properties;
 
-    public SpecParser(ClientOptInput optInput, GeneratorProperties properties) {
-        this.config = optInput.getConfig();
-        this.openAPI = optInput.getOpenAPI();
-        this.properties = properties;
-    }
-
-    public CodegenOperation getCodegenOperation(String path, String methodName, Operation operation) {
-        return config.fromOperation(path, methodName, operation, openAPI.getComponents().getSchemas(), openAPI);
-    }
-
-    public String getGroupIdentifier(CodegenOperation cgOperation, Operation operation) {
-        if (properties.getUseTags() && !operation.getTags().isEmpty()) {
-            return StringUtils.capitalize(operation.getTags().iterator().next());
-        } else {
-            return StringUtils.capitalize(cgOperation.getPath().split("/")[1]);
-        }
-    }
-
-    public CodegenConfig getConfig() {
-        return config;
-    }
-
-    public OpenAPI getOpenAPI() {
-        return openAPI;
+    public CodegenModelExtractor(CodegenConfig config, OpenAPI openAPI) {
+        this.config = config;
+        this.openAPI = openAPI;
     }
 
     public Map<String, CodegenModel> extractModels() {

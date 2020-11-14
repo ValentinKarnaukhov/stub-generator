@@ -1,5 +1,6 @@
 package com.github.valentinkarnaukhov.stubgeneratorv2.parser;
 
+import com.github.valentinkarnaukhov.stubgenerator.model.ObjectTemplate;
 import com.github.valentinkarnaukhov.stubgeneratorv2.model.Node;
 
 /**
@@ -7,8 +8,8 @@ import com.github.valentinkarnaukhov.stubgeneratorv2.model.Node;
  */
 public class NodeParser {
 
-    private void parse(Node node){
-
+    public ObjectTemplate parse(Node node){
+        return null;
     }
 
 }

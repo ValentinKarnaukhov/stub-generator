@@ -4,9 +4,9 @@ import com.github.valentinkarnaukhov.stubgenerator.model.Field;
 import com.github.valentinkarnaukhov.stubgeneratorv2.model.Item;
 import com.github.valentinkarnaukhov.stubgeneratorv2.model.Node;
 import com.github.valentinkarnaukhov.stubgeneratorv2.model.adapter.CodegenModelAdapter;
-import com.github.valentinkarnaukhov.stubgeneratorv2.parser.FieldExtractor;
 import com.github.valentinkarnaukhov.stubgeneratorv2.parser.ModelParser;
 import com.github.valentinkarnaukhov.stubgeneratorv2.parser.SpecParser;
+import com.github.valentinkarnaukhov.stubgeneratorv2.visitor.NodeVisitor;
 import io.swagger.codegen.v3.ClientOptInput;
 import io.swagger.codegen.v3.CodegenConfig;
 import io.swagger.codegen.v3.CodegenModel;
@@ -41,18 +41,18 @@ public class Test {
         clientOptInput = codegenConfigurator.toClientOptInput();
         clientOptInput.setOpenAPI(openAPI);
         config = clientOptInput.getConfig();
-        allModels = new SpecParser(clientOptInput).extractModels();
+        allModels = new SpecParser(clientOptInput, null).extractModels();
 
         Map<String, Item> models = new HashMap<>();
         for (Map.Entry<String, CodegenModel> entry : allModels.entrySet()) {
             models.put(entry.getKey(), new CodegenModelAdapter(entry.getValue()));
         }
 
-        ModelParser parser = new ModelParser(3, models);
+        ModelParser parser = new ModelParser(3, allModels);
         Item source = models.get("Level1");
         Node node = parser.parse(source);
-        FieldExtractor extractor = new FieldExtractor(null);
-        List<Field> fieldList = extractor.extractFields(node);
+        NodeVisitor visitor = new NodeVisitor(null);
+        visitor.visit(node);
         System.out.println("");
     }
 }
